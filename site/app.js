@@ -4,11 +4,14 @@ import opa from "./vendor/opa-wasm-browser.esm.js";
 
 const $ = (sel) => document.querySelector(sel);
 const changesList = $(".changes");
+const narration = $(".narration");
 const codeView = $(".code code");
 const builder = $(".builder");
 const goButton = $(".go");
-const stages = [...document.querySelectorAll(".stages li")];
+const readout = $(".readout");
 const result = $(".result");
+const still = matchMedia("(prefers-reduced-motion: reduce)");
+const sleep = (ms) => new Promise((r) => setTimeout(r, still.matches ? 0 : ms));
 
 const REGION_NAMES = {
   westeurope: "West Europe",
@@ -31,6 +34,7 @@ const RENAME_STORE = {
 const STORIES = {
   risky: {
     plan: "ai-risky-change",
+    story: "The agent wrote this in seconds. At a glance it looks like a reasonable quick fix.",
     items: [
       { match: ["azurerm_storage_account.export"], icon: "storage", title: "Create an export bucket for the customer's download", detail: "In East US, reachable from the internet, with account keys on, copied to a second region." },
       { match: ["azurerm_role_assignment.export_writer"], icon: "key", title: "Give the export app the Contributor role", detail: "On the whole subscription, so the upload \"just works\"." },
@@ -40,6 +44,7 @@ const STORIES = {
   },
   safe: {
     plan: "ai-safe-change",
+    story: "A small, careful change. This is what most agent work should look like.",
     items: [
       { match: ["module.stamp_eu.azurerm_storage_container.thumbnails"], icon: "image", title: "Add a private \"thumbnails\" folder", detail: "In the EU scan storage. Not public." },
       { match: ["module.stamp_eu.azurerm_role_assignment.viewer_read_thumbnails"], icon: "key", title: "Let the viewer read the thumbnails", detail: "Read-only access, nothing else." },
@@ -48,6 +53,7 @@ const STORIES = {
   },
   platform: {
     plan: "blueprint-prod",
+    story: "A real Terraform plan of this whole project: both regions and the global entry point.",
     items: [
       { prefix: "module.stamp_eu.", icon: "layers", title: "EU region in West Europe", detail: "Private scan storage, upload queue, network, identities and audit logs" },
       { prefix: "module.stamp_us.", icon: "layers", title: "US region in East US 2", detail: "The same, fully separate from the EU" },
@@ -77,6 +83,7 @@ const EXPLAIN = [
 const state = { story: "risky", author: "ai-agent" };
 const plans = {};
 let policy;
+let renderId = 0;
 
 function icon(name) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -101,7 +108,6 @@ function resource(address, type, actions, after) {
 
 function customStory() {
   const f = new FormData(builder);
-  const where = REGION_NAMES[f.get("location")];
   const tags = { owner: "team-scans", "data-region": f.get("dataRegion") };
   if (f.get("costTag")) tags["cost-center"] = "cc-4711";
 
@@ -117,7 +123,7 @@ function customStory() {
     }),
   ];
   const detail = [
-    `In ${where}`,
+    `In ${REGION_NAMES[f.get("location")]}`,
     f.get("publicAccess") ? "reachable from the internet" : "private",
     f.get("keys") ? "account keys on" : "personal sign-in only",
     f.get("replication") === "GZRS" ? "copied to a second region" : "3 copies in one region",
@@ -133,50 +139,67 @@ function customStory() {
     resources.push(plans["ai-risky-change"].resource_changes.find((rc) => rc.address === RENAME_STORE.match[0]));
     items.push(RENAME_STORE);
   }
-  return { plan: { resource_changes: resources }, items };
+  return { plan: { resource_changes: resources }, items, story: "Your change. Flip the switches above and scan it again." };
 }
 
 function currentStory() {
   if (state.story === "custom") return customStory();
   const story = STORIES[state.story];
-  return { plan: plans[story.plan], items: story.items };
+  return { plan: plans[story.plan], items: story.items, story: story.story };
 }
 
 function belongs(item, address) {
   return item.match ? item.match.includes(address) : address.startsWith(item.prefix);
 }
 
-function countFor(item, plan) {
-  return plan.resource_changes.filter((rc) => belongs(item, rc.address)).length;
+function changeRow(item, index, plan) {
+  const li = el("li", "change");
+  li.append(el("span", "ref", `CHG-${String(index + 1).padStart(2, "0")}`), icon(item.icon));
+  const body = el("div");
+  body.append(el("p", "t", item.title));
+  const count = item.prefix ? ` · ${plan.resource_changes.filter((rc) => belongs(item, rc.address)).length} resources` : "";
+  body.append(el("p", "d", item.detail + count));
+  li.append(body, el("span", "chip", "Not checked"));
+  return li;
 }
 
-function renderChanges() {
-  const { plan, items } = currentStory();
-  changesList.replaceChildren(...items.map((item) => {
-    const li = el("li", "change");
-    const body = el("div");
-    body.append(el("p", "t", item.title));
-    const n = item.prefix ? ` · ${countFor(item, plan)} resources` : "";
-    body.append(el("p", "d", item.detail + n));
-    const mark = el("span", "mark");
-    mark.title = "Not checked yet";
-    li.append(icon(item.icon), body, mark);
-    return li;
-  }));
+function setButton(label) {
+  goButton.replaceChildren(document.createTextNode(label));
+}
+
+// Shows the change the way the story goes: the agent writes it line by line.
+async function renderChanges({ animate = true } = {}) {
+  const id = ++renderId;
+  const { plan, items, story } = currentStory();
+  const who = state.author === "ai-agent" ? "AI agent" : "Engineer";
   codeView.textContent = JSON.stringify(plan, null, 2);
   result.hidden = true;
-  stages.forEach((s) => s.classList.remove("on"));
-  if (policy) {
-    goButton.disabled = false;
-    goButton.replaceChildren(icon("shield"), document.createTextNode("Run the safety check"));
+  readout.classList.remove("on");
+  readout.textContent = "10 rules loaded from policy/terraform";
+  changesList.replaceChildren();
+  goButton.disabled = true;
+
+  for (const [i, item] of items.entries()) {
+    if (animate) {
+      narration.className = "narration typing";
+      narration.textContent = `${who} is writing the change: ${i + 1} of ${items.length}`;
+      await sleep(260);
+      if (id !== renderId) return;
+    }
+    const row = changeRow(item, i, plan);
+    if (animate) row.classList.add("enter");
+    changesList.append(row);
   }
+
+  narration.className = "narration";
+  narration.replaceChildren(el("b", "", `${items.length} change${items.length === 1 ? "" : "s"} written. `), document.createTextNode(story));
+  goButton.disabled = false;
+  setButton("Scan this change");
 }
 
 function reasonNode(message, kind) {
-  const split = message.indexOf(": ");
-  const technical = split > 0 && !message.startsWith("plan ") ? message.slice(split + 2) : message;
   const found = EXPLAIN.find(([re]) => re.test(message));
-  const [title, why] = found ? found[1](message.match(found[0])) : [technical, ""];
+  const [title, why] = found ? found[1](message.match(found[0])) : [message, ""];
   const li = el("li", kind === "warn" ? "reason warn" : "reason");
   li.append(el("b", "", (kind === "warn" ? "Warning: " : "") + title));
   if (why) li.append(el("span", "", why));
@@ -184,66 +207,108 @@ function reasonNode(message, kind) {
   return li;
 }
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const addressOf = (m) => (m.indexOf(": ") > 0 && !m.startsWith("plan ") ? m.slice(0, m.indexOf(": ")) : null);
+
+// Moves the laser line down the list and stamps each row as it passes.
+function sweep(rows, onRow) {
+  return new Promise((resolve) => {
+    const laser = el("li", "laser");
+    laser.setAttribute("aria-hidden", "true");
+    changesList.append(laser);
+    const total = changesList.getBoundingClientRect().height;
+    const marks = rows.map((r) => r.offsetTop + r.offsetHeight * 0.6);
+    const duration = still.matches ? 0 : Math.min(2600, Math.max(1300, rows.length * 520));
+    let next = 0;
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      while (next < rows.length) onRow(next++);
+      laser.remove();
+      resolve();
+    };
+    const t0 = performance.now();
+    const step = (now) => {
+      if (done) return;
+      const p = duration ? Math.min((now - t0) / duration, 1) : 1;
+      const y = p * total;
+      laser.style.transform = `translateY(${y}px)`;
+      while (next < rows.length && marks[next] <= y) onRow(next++);
+      if (p < 1) requestAnimationFrame(step);
+      else finish();
+    };
+    requestAnimationFrame(step);
+    // Background tabs pause animation frames; the verdict must still arrive.
+    setTimeout(finish, duration + 800);
+  });
+}
 
 async function run() {
+  const id = renderId;
   goButton.disabled = true;
+  setButton("Scanning…");
   result.hidden = true;
   const { plan, items } = currentStory();
-
-  for (const s of stages) {
-    s.classList.add("on");
-    if (!reducedMotion) await sleep(320);
-  }
 
   policy.setData({ change: { author_type: state.author } });
   const [{ result: decision }] = policy.evaluate(plan);
   const deny = [...decision.deny].sort();
   const warn = [...decision.warn].sort();
-  const addressOf = (m) => (m.indexOf(": ") > 0 && !m.startsWith("plan ") ? m.slice(0, m.indexOf(": ")) : null);
 
-  const rows = [...changesList.children];
-  items.forEach((item, i) => {
+  const rows = [...changesList.querySelectorAll(".change")];
+  for (const row of rows) {
+    row.classList.remove("ok", "deny", "warn", "stamp");
+    row.querySelector(".reasons")?.remove();
+    row.querySelector(".chip").textContent = "Not checked";
+  }
+  readout.classList.add("on");
+  readout.textContent = `Scanning ${plan.resource_changes.length} resources against 10 rules`;
+
+  await sweep(rows, (i) => {
+    const item = items[i];
     const mine = (list) => list.filter((m) => addressOf(m) && belongs(item, addressOf(m)));
     const d = mine(deny);
     const w = mine(warn);
     const row = rows[i];
-    row.classList.add(d.length ? "deny" : w.length ? "warn" : "ok");
-    const mark = row.querySelector(".mark");
-    mark.replaceChildren(icon(d.length ? "cross" : w.length ? "alert" : "check"));
-    mark.title = d.length ? "Blocked" : w.length ? "Warning" : "Passed";
+    const kind = d.length ? "deny" : w.length ? "warn" : "ok";
+    row.classList.add(kind, "stamp");
+    row.querySelector(".chip").textContent = kind === "deny" ? "Blocked" : kind === "warn" ? "Warning" : "Pass";
     if (d.length || w.length) {
       const ul = el("ul", "reasons");
       ul.append(...d.map((m) => reasonNode(m, "deny")), ...w.map((m) => reasonNode(m, "warn")));
       row.append(ul);
     }
   });
+  if (id !== renderId) return;
 
-  const general = [...deny.filter((m) => !addressOf(m)).map((m) => reasonNode(m, "deny")), ...warn.filter((m) => !addressOf(m)).map((m) => reasonNode(m, "warn"))];
-  $(".general").replaceChildren(...general);
+  $(".general").replaceChildren(
+    ...deny.filter((m) => !addressOf(m)).map((m) => reasonNode(m, "deny")),
+    ...warn.filter((m) => !addressOf(m)).map((m) => reasonNode(m, "warn")),
+  );
 
   const n = plan.resource_changes.length;
-  const who = state.author === "ai-agent" ? "an AI agent" : "an engineer";
   const kind = deny.length ? "deny" : warn.length ? "warn" : "allow";
   result.className = `result ${kind}`;
-  $(".verdict").replaceChildren(icon(kind === "deny" ? "cross" : kind === "warn" ? "alert" : "check"), $(".verdict div"));
+  const verdict = $(".verdict");
+  verdict.replaceChildren(icon(kind === "deny" ? "cross" : kind === "warn" ? "alert" : "check"), verdict.querySelector("div"));
   $(".v-title").textContent = kind === "deny"
     ? `Blocked: ${deny.length} problem${deny.length === 1 ? "" : "s"} found`
     : kind === "warn" ? "Allowed, with a warning" : "Safe to approve";
-  $(".v-sub").textContent = `Change written by ${who} · ${n} resource${n === 1 ? "" : "s"} checked against 10 rules`;
+  $(".v-sub").textContent = `${state.author === "ai-agent" ? "Written by an AI agent" : "Written by an engineer"} / ${n} resource${n === 1 ? "" : "s"} / 10 rules`;
 
   const next = $(".next");
-  next.replaceChildren();
-  const strong = el("strong", "", kind === "deny" ? "Nothing reached Azure. " : "Next, a platform engineer approves it. ");
-  next.append(strong, document.createTextNode(kind === "deny"
-    ? "The change cannot be merged. The reasons go back to whoever wrote it, so they can fix it and try again."
-    : "Then the pipeline applies exactly this change, and stops if anything changed after the approval."));
+  next.replaceChildren(
+    el("strong", "", kind === "deny" ? "Nothing reached Azure. " : "Next, a platform engineer approves it. "),
+    document.createTextNode(kind === "deny"
+      ? "The change cannot be merged. The reasons go back to whoever wrote it, so they can fix it and try again."
+      : "Then the pipeline applies exactly this change, and stops if anything changed after the approval."),
+  );
 
+  readout.textContent = `Done: ${deny.length} blocked, ${warn.length} warning${warn.length === 1 ? "" : "s"}`;
   result.hidden = false;
   goButton.disabled = false;
-  goButton.replaceChildren(icon("shield"), document.createTextNode("Run it again"));
-  result.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "nearest" });
+  setButton("Scan it again");
+  result.scrollIntoView({ behavior: still.matches ? "auto" : "smooth", block: "nearest" });
 }
 
 function choose(groupSelector, attr, value) {
@@ -254,7 +319,7 @@ function choose(groupSelector, attr, value) {
 
 $(".stories").addEventListener("click", (e) => {
   const b = e.target.closest("[data-story]");
-  if (!b) return;
+  if (!b || b.dataset.story === state.story) return;
   state.story = b.dataset.story;
   choose(".stories", "data-story", state.story);
   builder.hidden = state.story !== "custom";
@@ -263,15 +328,44 @@ $(".stories").addEventListener("click", (e) => {
 
 $(".who").addEventListener("click", (e) => {
   const b = e.target.closest("[data-author]");
-  if (!b) return;
+  if (!b || b.dataset.author === state.author) return;
   state.author = b.dataset.author;
   choose(".who", "data-author", state.author);
-  renderChanges();
+  renderChanges({ animate: false });
 });
 
-builder.addEventListener("input", renderChanges);
+builder.addEventListener("input", () => renderChanges({ animate: false }));
 builder.addEventListener("submit", (e) => e.preventDefault());
 goButton.addEventListener("click", run);
+
+// Sections arrive as they scroll into view. Content is visible without
+// this; the class is only added when the browser can drive it, and a
+// timer reveals everything in case the observer never reports.
+const sections = document.querySelectorAll(".reveal");
+if ("IntersectionObserver" in window && !still.matches) {
+  document.documentElement.classList.add("motion");
+  const reveal = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in");
+        reveal.unobserve(entry.target);
+      }
+    }
+  }, { threshold: 0.12 });
+  sections.forEach((node) => reveal.observe(node));
+  setTimeout(() => sections.forEach((node) => node.classList.add("in")), 2500);
+}
+
+// The change list is filled at once; the first time it comes into view,
+// the agent "writes" it again line by line.
+let replayed = false;
+const firstView = "IntersectionObserver" in window && new IntersectionObserver(([entry]) => {
+  if (entry.isIntersecting && !replayed) {
+    replayed = true;
+    firstView.disconnect();
+    renderChanges();
+  }
+}, { threshold: 0.35 });
 
 try {
   const [wasm, ...loaded] = await Promise.all([
@@ -280,8 +374,9 @@ try {
   ]);
   for (const [name, p] of loaded) plans[name] = p;
   policy = await opa.loadPolicy(wasm);
-  renderChanges();
+  await renderChanges({ animate: false });
+  if (firstView && !still.matches) firstView.observe($(".changes").closest(".step"));
 } catch (err) {
-  goButton.textContent = "The checker could not be loaded";
+  setButton("The checker could not be loaded");
   console.error(err);
 }

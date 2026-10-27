@@ -25,43 +25,57 @@
 
   <header class="hero">
     <div class="wrap">
-      <p class="eyebrow"><span class="dot"></span>Live demo · Reality Capture Platform Blueprint</p>
-      <h1>Who checks the code<br><span class="grad">an AI writes?</span></h1>
-      <p class="lede">AI agents can write the cloud setup for a platform in seconds. This demo is the automatic safety check that reviews every change <strong>before it reaches Azure</strong>, and says in plain words what it blocked and why.</p>
-
-      <div class="context">
-        <svg class="ico"><use href="#i-layers"/></svg>
-        <p><strong>The platform being protected:</strong> customers upload laser scans of buildings, construction sites and crime scenes, and their teams view them in the browser. Those scans are customer data, sometimes court evidence, and must stay in the customer's region, EU or US.</p>
+      <nav class="bar">
+        <span class="mark-logo"><i></i>Reality Capture Platform</span>
+        <a href="https://github.com/satrilabs/reality-capture-platform">Source on GitHub</a>
+      </nav>
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">Live demo / AI change checker</p>
+          <h1>Who checks the code an&nbsp;AI&nbsp;writes?</h1>
+          <p class="lede">AI agents can write the cloud setup for a platform in seconds. This is the automatic safety check that reviews every change <strong>before it reaches Azure</strong>, and says in plain words what it blocked and why.</p>
+          <ol class="how">
+            <li><span class="n">01</span><strong>A request</strong><small>Someone asks an AI agent for a change.</small></li>
+            <li><span class="n">02</span><strong>The change</strong><small>The agent writes it as Terraform.</small></li>
+            <li class="hl"><span class="n">03</span><strong>The check</strong><small>Before anything happens. Then a person approves.</small></li>
+          </ol>
+        </div>
+        <figure class="scan">
+          <canvas aria-label="A laser scanner on a tripod capturing a small building as a point cloud"></canvas>
+          <figcaption>
+            <span class="live"><i></i>Live scan</span>
+            <span><b class="count">0</b> points</span>
+            <span class="cap">What customers upload: point clouds of real buildings, sites and crime scenes. Customer data, sometimes court evidence, and it must stay in the customer's region.</span>
+          </figcaption>
+        </figure>
       </div>
-
-      <ol class="how">
-        <li><span class="n">1</span><strong>Someone asks an AI agent for a change</strong><small>"Add an export bucket for this customer."</small></li>
-        <li><span class="n">2</span><strong>The agent writes it as infrastructure code</strong><small>Terraform: what to create, change or delete in Azure.</small></li>
-        <li class="hl"><span class="n">3</span><strong>The checker reviews it</strong><small>Before anything happens. Only then can a person approve it.</small></li>
-      </ol>
     </div>
   </header>
 
   <main class="wrap">
-    <section class="step" aria-labelledby="s1">
-      <h2 id="s1"><span class="badge">Step 1</span> Pick a request</h2>
+    <section class="reveal step" aria-labelledby="s1">
+      <h2 id="s1"><span class="badge">01</span>Pick a request</h2>
       <div class="stories" role="radiogroup" aria-label="Requests">
         <button type="button" class="story" role="radio" aria-checked="true" data-story="risky">
+          <span class="ref">REQ-01</span>
           <svg class="ico"><use href="#i-storage"/></svg>
           <span class="q">"Our customer wants to download all their scans. Add an export bucket."</span>
           <span class="hint">A quick fix an agent might write</span>
         </button>
         <button type="button" class="story" role="radio" aria-checked="false" data-story="safe">
+          <span class="ref">REQ-02</span>
           <svg class="ico"><use href="#i-image"/></svg>
           <span class="q">"Show small preview images in the viewer. Add a thumbnails folder."</span>
           <span class="hint">An ordinary, careful change</span>
         </button>
         <button type="button" class="story" role="radio" aria-checked="false" data-story="platform">
+          <span class="ref">REQ-03</span>
           <svg class="ico"><use href="#i-globe"/></svg>
           <span class="q">"Set up the whole platform in both regions."</span>
           <span class="hint">A real plan of this project: 57 resources</span>
         </button>
         <button type="button" class="story" role="radio" aria-checked="false" data-story="custom">
+          <span class="ref">REQ-04</span>
           <svg class="ico"><use href="#i-spark"/></svg>
           <span class="q">Build your own change</span>
           <span class="hint">Pick region, access and settings yourself</span>
@@ -69,9 +83,9 @@
       </div>
     </section>
 
-    <section class="step" aria-labelledby="s2">
+    <section class="reveal step" aria-labelledby="s2">
       <div class="step-head">
-        <h2 id="s2"><span class="badge">Step 2</span> What the change does</h2>
+        <h2 id="s2"><span class="badge">02</span>What the change does</h2>
         <div class="who" role="radiogroup" aria-label="Who wrote the change">
           <span>Written by</span>
           <button type="button" role="radio" aria-checked="true" data-author="ai-agent">AI agent</button>
@@ -108,7 +122,8 @@
         <label class="toggle"><input type="checkbox" name="replace"><span></span>Also rename the main scan storage</label>
       </form>
 
-      <ul class="changes" aria-live="polite"></ul>
+      <p class="narration" aria-live="polite"></p>
+      <ul class="changes"></ul>
 
       <details class="code">
         <summary>See it as code (the Terraform plan the checker reads)</summary>
@@ -116,14 +131,12 @@
       </details>
     </section>
 
-    <section class="step run" aria-labelledby="s3">
-      <h2 id="s3"><span class="badge">Step 3</span> Check it</h2>
-      <button type="button" class="go" disabled>Loading the checker…</button>
-      <ol class="stages" aria-hidden="true">
-        <li>Reading the change</li>
-        <li>Applying 10 rules</li>
-        <li>Verdict</li>
-      </ol>
+    <section class="reveal step run" aria-labelledby="s3">
+      <h2 id="s3"><span class="badge">03</span>Scan the change</h2>
+      <div class="run-row">
+        <button type="button" class="go" disabled>Loading the checker…</button>
+        <p class="readout" aria-hidden="true">10 rules loaded from policy/terraform</p>
+      </div>
       <div class="result" hidden aria-live="polite">
         <div class="verdict"><svg class="ico"><use href="#i-check"/></svg><div><p class="v-title"></p><p class="v-sub"></p></div></div>
         <ul class="general"></ul>
@@ -131,7 +144,7 @@
       </div>
     </section>
 
-    <details class="rules">
+    <details class="reveal rules">
       <summary>All 10 rules the checker applies</summary>
       <div class="table-wrap">
         <table>
@@ -157,6 +170,7 @@
     <p>This page runs the real policy files from <a href="https://github.com/satrilabs/reality-capture-platform">the repository</a>, compiled to WebAssembly, in your browser. The same files gate the Azure DevOps pipeline. Nothing you do here leaves your browser.</p>
   </footer>
 
+  <script type="module" src="hero.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>
