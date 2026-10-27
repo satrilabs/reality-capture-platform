@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: build-agent
+  annotations:
+    # Client ID of the identity from infra/modules/build-agents
+    # (output agent_identity_client_id). Federated, so no secret is needed
+    # to reach Key Vault or push images.
+    azure.workload.identity/client-id: AGENT_IDENTITY_CLIENT_ID
+---
+# KEDA reads the Azure DevOps token straight from Key Vault to watch the
+# queue, so it never depends on a secret inside the cluster.
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: azp-agent
+spec:
+  azureKeyVault:
+    vaultUri: https://kv-rcp-build.vault.azure.net
+    podIdentity:
+      provider: azure-workload
+      identityId: AGENT_IDENTITY_CLIENT_ID
+    secrets:
+      - parameter: personalAccessToken
+        name: azp-agent-token
+---
+# The agent gets the same token as a read-only file through the Secrets
+# Store CSI driver. It is never in Git and never a Kubernetes secret.
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: azp-agent
+spec:
+  provider: azure
+  parameters:
+    clientID: AGENT_IDENTITY_CLIENT_ID
+    keyvaultName: kv-rcp-build
+    tenantId: TENANT_ID
+    objects: |
+      array:
+        - |
+          objectName: azp-agent-token
+          objectType: secret
+---
+# Agents may not talk to each other or to anything inside the cluster:
+# only DNS and outbound HTTPS to Azure DevOps, the registry and package feeds.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: build-agent-egress
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+  egress:
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]
+      ports:
+        - protocol: TCP
+          port: 443

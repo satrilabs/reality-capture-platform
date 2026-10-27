@@ -39,8 +39,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "agents" {
   tags = merge(var.tags, { workload = "build-agents" })
 }
 
-# The identity agents use to push images and artefacts. Federated to the
-# agent service account, so no secret ever sits in the cluster.
+# One identity for the agents and for KEDA. Federated to each team's agent
+# service account and to the KEDA operator, so no secret is needed to read
+# the Azure DevOps token from Key Vault or to push images.
 resource "azurerm_user_assigned_identity" "agents" {
   name                = "id-${var.name}-agents"
   location            = var.location
@@ -48,17 +49,33 @@ resource "azurerm_user_assigned_identity" "agents" {
   tags                = var.tags
 }
 
-resource "azurerm_federated_identity_credential" "agents" {
-  name                = "build-agents"
+resource "azurerm_federated_identity_credential" "team" {
+  for_each            = var.teams
+  name                = "build-${each.key}"
   resource_group_name = var.resource_group_name
   parent_id           = azurerm_user_assigned_identity.agents.id
   audience            = ["api://AzureADTokenExchange"]
   issuer              = var.oidc_issuer_url
-  subject             = "system:serviceaccount:${var.namespace}:build-agent"
+  subject             = "system:serviceaccount:build-${each.key}:build-agent"
+}
+
+resource "azurerm_federated_identity_credential" "keda" {
+  name                = "keda-operator"
+  resource_group_name = var.resource_group_name
+  parent_id           = azurerm_user_assigned_identity.agents.id
+  audience            = ["api://AzureADTokenExchange"]
+  issuer              = var.oidc_issuer_url
+  subject             = "system:serviceaccount:${var.keda_namespace}:keda-operator"
 }
 
 resource "azurerm_role_assignment" "agents_acr_push" {
   scope                = var.container_registry_id
   role_definition_name = "AcrPush"
+  principal_id         = azurerm_user_assigned_identity.agents.principal_id
+}
+
+resource "azurerm_role_assignment" "agents_read_token" {
+  scope                = var.key_vault_id
+  role_definition_name = "Key Vault Secrets User"
   principal_id         = azurerm_user_assigned_identity.agents.principal_id
 }

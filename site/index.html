@@ -4,139 +4,157 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AI Change Checker</title>
-  <meta name="description" content="Live demo: the platform's real Terraform policies, compiled to WebAssembly, checking changes written by people and AI agents.">
+  <meta name="description" content="Live demo: an automatic safety check that reviews every cloud change an AI agent writes, before it reaches Azure, and explains what it blocked and why.">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <svg width="0" height="0" class="sprite" aria-hidden="true">
+    <symbol id="i-storage" viewBox="0 0 24 24"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4.5"/><path d="M11.2 11.8 20 3m-3.5 3.5 2.5 2.5M14 9l2 2"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6L12 3Z"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m5 18 5-5 3 3 2.5-2.5L19.5 18"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 16a8 8 0 1 1 16 0M12 16l4-5"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.7 5.4 3.7 8.5s-1.2 5.9-3.7 8.5c-2.5-2.6-3.7-5.4-3.7-8.5S9.5 6.1 12 3.5Z"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3.5 8.5 4.5-8.5 4.5L3.5 8 12 3.5Z"/><path d="m3.5 12 8.5 4.5 8.5-4.5M3.5 16l8.5 4.5 8.5-4.5"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-cross" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 2.8 19.5h18.4L12 4Z"/><path d="M12 10v4.5M12 17.2v.3"/></symbol>
+  </svg>
+
   <header class="hero">
     <div class="wrap">
-      <p class="eyebrow">Reality Capture Platform Blueprint · live demo</p>
-      <h1>AI Change Checker</h1>
-      <p class="lede">AI coding agents can write cloud infrastructure in seconds. Before any change reaches Azure, it is checked against the platform's rules. This page runs the <strong>real policies from the repository</strong>, compiled to WebAssembly, right in your browser.</p>
-      <ol class="flow" aria-label="How a change reaches production">
-        <li><span>1</span>Agent or engineer opens a pull request</li>
-        <li><span>2</span>Pipeline creates a Terraform plan</li>
-        <li class="here"><span>3</span>Checker reviews the plan <em>(this page)</em></li>
-        <li><span>4</span>A platform engineer approves</li>
-        <li><span>5</span>Pipeline applies exactly what was approved</li>
+      <p class="eyebrow"><span class="dot"></span>Live demo · Reality Capture Platform Blueprint</p>
+      <h1>Who checks the code<br><span class="grad">an AI writes?</span></h1>
+      <p class="lede">AI agents can write the cloud setup for a platform in seconds. This demo is the automatic safety check that reviews every change <strong>before it reaches Azure</strong>, and says in plain words what it blocked and why.</p>
+
+      <div class="context">
+        <svg class="ico"><use href="#i-layers"/></svg>
+        <p><strong>The platform being protected:</strong> customers upload laser scans of buildings, construction sites and crime scenes, and their teams view them in the browser. Those scans are customer data, sometimes court evidence, and must stay in the customer's region, EU or US.</p>
+      </div>
+
+      <ol class="how">
+        <li><span class="n">1</span><strong>Someone asks an AI agent for a change</strong><small>"Add an export bucket for this customer."</small></li>
+        <li><span class="n">2</span><strong>The agent writes it as infrastructure code</strong><small>Terraform: what to create, change or delete in Azure.</small></li>
+        <li class="hl"><span class="n">3</span><strong>The checker reviews it</strong><small>Before anything happens. Only then can a person approve it.</small></li>
       </ol>
     </div>
   </header>
 
   <main class="wrap">
-    <section class="panel" aria-labelledby="try">
-      <div class="panel-head">
-        <h2 id="try">Try a change</h2>
-        <div class="segmented" role="radiogroup" aria-label="Who wrote the change">
+    <section class="step" aria-labelledby="s1">
+      <h2 id="s1"><span class="badge">Step 1</span> Pick a request</h2>
+      <div class="stories" role="radiogroup" aria-label="Requests">
+        <button type="button" class="story" role="radio" aria-checked="true" data-story="risky">
+          <svg class="ico"><use href="#i-storage"/></svg>
+          <span class="q">"Our customer wants to download all their scans. Add an export bucket."</span>
+          <span class="hint">A quick fix an agent might write</span>
+        </button>
+        <button type="button" class="story" role="radio" aria-checked="false" data-story="safe">
+          <svg class="ico"><use href="#i-image"/></svg>
+          <span class="q">"Show small preview images in the viewer. Add a thumbnails folder."</span>
+          <span class="hint">An ordinary, careful change</span>
+        </button>
+        <button type="button" class="story" role="radio" aria-checked="false" data-story="platform">
+          <svg class="ico"><use href="#i-globe"/></svg>
+          <span class="q">"Set up the whole platform in both regions."</span>
+          <span class="hint">A real plan of this project: 57 resources</span>
+        </button>
+        <button type="button" class="story" role="radio" aria-checked="false" data-story="custom">
+          <svg class="ico"><use href="#i-spark"/></svg>
+          <span class="q">Build your own change</span>
+          <span class="hint">Pick region, access and settings yourself</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="step" aria-labelledby="s2">
+      <div class="step-head">
+        <h2 id="s2"><span class="badge">Step 2</span> What the change does</h2>
+        <div class="who" role="radiogroup" aria-label="Who wrote the change">
+          <span>Written by</span>
           <button type="button" role="radio" aria-checked="true" data-author="ai-agent">AI agent</button>
           <button type="button" role="radio" aria-checked="false" data-author="human">Engineer</button>
         </div>
       </div>
 
-      <div class="tabs" role="tablist">
-        <button type="button" role="tab" aria-selected="true" data-tab="examples">Ready-made changes</button>
-        <button type="button" role="tab" aria-selected="false" data-tab="build">Build your own</button>
-      </div>
+      <form class="builder" hidden aria-label="Build your own change">
+        <label>Customer is in
+          <select name="dataRegion"><option value="eu">the EU</option><option value="us">the US</option></select>
+        </label>
+        <label>Store the data in
+          <select name="location">
+            <option value="westeurope">West Europe</option>
+            <option value="germanywestcentral">Germany West Central</option>
+            <option value="eastus2">East US 2</option>
+            <option value="eastus">East US</option>
+          </select>
+        </label>
+        <label>Copies
+          <select name="replication"><option value="ZRS">3 copies in one region</option><option value="GZRS">6 copies in two regions</option></select>
+        </label>
+        <label>Give the export app
+          <select name="role">
+            <option value="">no extra access</option>
+            <option value="Storage Blob Data Reader">read-only access to files</option>
+            <option value="Contributor">Contributor (change anything)</option>
+            <option value="Owner">Owner (full control)</option>
+          </select>
+        </label>
+        <label class="toggle"><input type="checkbox" name="publicAccess"><span></span>Reachable from the internet</label>
+        <label class="toggle"><input type="checkbox" name="keys"><span></span>Use account keys (shared password)</label>
+        <label class="toggle"><input type="checkbox" name="costTag" checked><span></span>Labelled with a cost center</label>
+        <label class="toggle"><input type="checkbox" name="replace"><span></span>Also rename the main scan storage</label>
+      </form>
 
-      <div class="grid">
-        <div class="left">
-          <div data-pane="examples">
-            <div class="examples" role="radiogroup" aria-label="Example changes">
-              <button type="button" class="example" role="radio" aria-checked="true" data-plan="ai-risky-change">
-                <strong>"Add an export bucket for a customer"</strong>
-                <span>What an agent might produce: wrong region, public access, a broad role to make it work, and the policy that was in the way removed.</span>
-              </button>
-              <button type="button" class="example" role="radio" aria-checked="false" data-plan="ai-safe-change">
-                <strong>"Add a thumbnails container"</strong>
-                <span>A small, ordinary change with a narrow read-only role.</span>
-              </button>
-              <button type="button" class="example" role="radio" aria-checked="false" data-plan="blueprint-prod">
-                <strong>The whole platform</strong>
-                <span>A real Terraform plan of both regions and the global edge: 57 resources.</span>
-              </button>
-            </div>
-          </div>
+      <ul class="changes" aria-live="polite"></ul>
 
-          <form data-pane="build" hidden aria-label="Build a storage account change">
-            <fieldset>
-              <legend>New storage account for customer exports</legend>
-              <label>Customer's data region
-                <select name="dataRegion">
-                  <option value="eu">EU</option>
-                  <option value="us">US</option>
-                </select>
-              </label>
-              <label>Azure region
-                <select name="location">
-                  <option value="westeurope">West Europe</option>
-                  <option value="germanywestcentral">Germany West Central</option>
-                  <option value="eastus2">East US 2</option>
-                  <option value="eastus">East US</option>
-                </select>
-              </label>
-              <label>Replication
-                <select name="replication">
-                  <option value="ZRS">Zone-redundant, stays in region</option>
-                  <option value="GZRS">Geo-redundant, copies to a second region</option>
-                </select>
-              </label>
-              <label class="switch"><input type="checkbox" name="publicAccess"> Reachable from the internet</label>
-              <label class="switch"><input type="checkbox" name="keys"> Account keys switched on</label>
-              <label class="switch"><input type="checkbox" name="costTag" checked> Has a cost-center tag</label>
-            </fieldset>
-            <fieldset>
-              <legend>Access and existing data</legend>
-              <label>Give the export app the role
-                <select name="role">
-                  <option value="">No role</option>
-                  <option value="Storage Blob Data Reader">Storage Blob Data Reader</option>
-                  <option value="Contributor">Contributor</option>
-                  <option value="Owner">Owner</option>
-                </select>
-              </label>
-              <label class="switch"><input type="checkbox" name="replace"> Rename the main scan storage (forces delete and re-create)</label>
-            </fieldset>
-          </form>
-        </div>
+      <details class="code">
+        <summary>See it as code (the Terraform plan the checker reads)</summary>
+        <pre><code></code></pre>
+      </details>
+    </section>
 
-        <div class="right" aria-live="polite">
-          <div class="verdict" data-state="loading">
-            <p class="status">Loading the policies…</p>
-            <p class="meta"></p>
-          </div>
-          <ul class="findings"></ul>
-          <details class="plan">
-            <summary>Show the plan the checker received</summary>
-            <pre><code></code></pre>
-          </details>
-        </div>
+    <section class="step run" aria-labelledby="s3">
+      <h2 id="s3"><span class="badge">Step 3</span> Check it</h2>
+      <button type="button" class="go" disabled>Loading the checker…</button>
+      <ol class="stages" aria-hidden="true">
+        <li>Reading the change</li>
+        <li>Applying 10 rules</li>
+        <li>Verdict</li>
+      </ol>
+      <div class="result" hidden aria-live="polite">
+        <div class="verdict"><svg class="ico"><use href="#i-check"/></svg><div><p class="v-title"></p><p class="v-sub"></p></div></div>
+        <ul class="general"></ul>
+        <p class="next"></p>
       </div>
     </section>
 
-    <section class="panel" aria-labelledby="rules">
-      <h2 id="rules">The rules</h2>
+    <details class="rules">
+      <summary>All 10 rules the checker applies</summary>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Rule</th><th>Applies to</th><th>Why</th></tr></thead>
+          <thead><tr><th>Rule</th><th>For</th><th>Why</th></tr></thead>
           <tbody>
-            <tr><td>Owner, cost-center and data-region tags</td><td>Everyone</td><td>Cost per team and customer; residency reporting</td></tr>
-            <tr><td>Azure region must match the customer's data region</td><td>Everyone</td><td>EU customer data never lands in a US region</td></tr>
-            <tr><td>Storage is private, keyless, TLS 1.2</td><td>Everyone</td><td>Scan data is customer data, sometimes court evidence</td></tr>
-            <tr><td>Build agents run on Spot VMs and scale to zero</td><td>Everyone</td><td>Build capacity costs nothing when idle</td></tr>
-            <tr><td>Geo-redundant storage needs a stated reason <em>(warning)</em></td><td>Everyone</td><td>It doubles the storage bill</td></tr>
-            <tr><td>No Owner, Contributor or access-admin grants</td><td>AI agents</td><td>An agent must not widen anyone's access</td></tr>
-            <tr><td>No deleting or replacing stateful resources</td><td>AI agents</td><td>A rename that forces a replace destroys data</td></tr>
-            <tr><td>No changes to Azure Policy or audit logging</td><td>AI agents</td><td>Agents must not switch off the guardrails</td></tr>
-            <tr><td>At most 25 resources per change</td><td>AI agents</td><td>Big changes get split so a reviewer can follow them</td></tr>
-            <tr><td>Deleting stateful resources needs a second approver <em>(warning)</em></td><td>Engineers</td><td>Same risk, but a person may have a reason</td></tr>
+            <tr><td>Every resource says who owns it, who pays and which region its data belongs to</td><td>Everyone</td><td>Cost per team and customer; data residency</td></tr>
+            <tr><td>Data is stored only in the customer's region</td><td>Everyone</td><td>EU customer data never lands in the US</td></tr>
+            <tr><td>Storage is private, uses personal sign-in only, modern encryption</td><td>Everyone</td><td>Scans are customer data, sometimes court evidence</td></tr>
+            <tr><td>Build machines use cheap Spot capacity and switch off when idle</td><td>Everyone</td><td>No cost when nobody is building</td></tr>
+            <tr><td>Copying data to a second region needs a stated reason <em>(warning)</em></td><td>Everyone</td><td>It doubles the storage bill</td></tr>
+            <tr><td>No Owner, Contributor or access-admin rights handed out</td><td>AI agents</td><td>An agent must not widen anyone's access</td></tr>
+            <tr><td>No deleting or replacing storage, databases or key vaults</td><td>AI agents</td><td>A rename can silently destroy data</td></tr>
+            <tr><td>No changes to the guardrails or the audit logs</td><td>AI agents</td><td>The checked must not edit the checker</td></tr>
+            <tr><td>At most 25 resources per change</td><td>AI agents</td><td>Big changes get split so a person can follow them</td></tr>
+            <tr><td>Deleting stored data needs a second approver <em>(warning)</em></td><td>Engineers</td><td>Same risk, but a person may have a reason</td></tr>
           </tbody>
         </table>
       </div>
-    </section>
+    </details>
   </main>
 
   <footer class="wrap">
-    <p>Source, Terraform and pipelines: <a href="https://github.com/satrilabs/reality-capture-platform">github.com/satrilabs/reality-capture-platform</a>. Policies are in <code>policy/terraform</code>; the same files gate the Azure DevOps pipeline. Evaluated with <a href="https://github.com/open-policy-agent/npm-opa-wasm">OPA WebAssembly</a>. Nothing you do here leaves your browser.</p>
+    <p>This page runs the real policy files from <a href="https://github.com/satrilabs/reality-capture-platform">the repository</a>, compiled to WebAssembly, in your browser. The same files gate the Azure DevOps pipeline. Nothing you do here leaves your browser.</p>
   </footer>
 
   <script type="module" src="app.js"></script>

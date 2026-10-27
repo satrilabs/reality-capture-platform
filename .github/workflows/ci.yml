@@ -54,7 +54,15 @@ jobs:
           expect_allowed examples/plans/ai-safe-change.json ai-agent
           expect_blocked examples/plans/ai-risky-change.json ai-agent
 
+      - name: Render the build agent overlays
+        run: |
+          mkdir -p rendered
+          for team in platform/build-agents/teams/*/; do
+            kubectl kustomize "$team" > "rendered/$(basename "$team").yaml"
+          done
+
       - name: Checkov security scan
         run: |
           pipx install checkov
           checkov --directory infra --framework terraform --compact --quiet
+          checkov --directory rendered --framework kubernetes --compact --quiet

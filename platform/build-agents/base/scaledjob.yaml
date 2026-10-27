@@ -1,0 +1,85 @@
+# One build agent per queued pipeline job. KEDA watches the Azure DevOps
+# pool; for each waiting job it starts a pod that runs that one job and
+# exits. No jobs waiting: no pods, and the Spot node pool scales to zero.
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: build-agent
+spec:
+  pollingInterval: 15
+  maxReplicaCount: 20 # matches max_nodes in Terraform: the cost ceiling
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTargetRef:
+    backoffLimit: 0 # a Spot eviction fails the job; Azure DevOps retries it on a fresh agent
+    activeDeadlineSeconds: 7200
+    template:
+      metadata:
+        labels:
+          azure.workload.identity/use: "true"
+      spec:
+        serviceAccountName: build-agent
+        restartPolicy: Never
+        nodeSelector:
+          workload: build-agents
+        tolerations:
+          - key: workload
+            operator: Equal
+            value: build-agents
+            effect: NoSchedule
+          - key: kubernetes.azure.com/scalesetpriority
+            operator: Equal
+            value: spot
+            effect: NoSchedule
+        securityContext:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+        containers:
+          - name: agent
+            image: TEAM_BUILD_IMAGE # set by each team's overlay
+            # Image built on Microsoft's reference agent start script:
+            # --once runs a single job, then the pod exits.
+            args: [--once]
+            env:
+              - name: AZP_URL
+                value: https://dev.azure.com/example-org
+              - name: AZP_POOL
+                value: POOL_NAME # set by each team's overlay
+              - name: AZP_TOKEN_FILE
+                value: /mnt/secrets/azp-agent-token
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: [ALL]
+            resources:
+              requests:
+                cpu: "2"
+                memory: 4Gi
+              limits:
+                cpu: "4"
+                memory: 8Gi
+            volumeMounts:
+              - name: secrets
+                mountPath: /mnt/secrets
+                readOnly: true
+              - name: work
+                mountPath: /azp/_work
+        volumes:
+          - name: secrets
+            csi:
+              driver: secrets-store.csi.k8s.io
+              readOnly: true
+              volumeAttributes:
+                secretProviderClass: azp-agent
+          - name: work
+            emptyDir:
+              sizeLimit: 100Gi
+  triggers:
+    - type: azure-pipelines
+      metadata:
+        poolName: POOL_NAME # set by each team's overlay
+        organizationURLFromEnv: AZP_URL
+        targetPipelinesQueueLength: "1"
+      authenticationRef:
+        name: azp-agent

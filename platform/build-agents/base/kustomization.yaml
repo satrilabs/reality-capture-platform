@@ -1,0 +1,7 @@
+# The platform's part of the shared-responsibility model: node placement,
+# identity, secrets, network rules, limits and scaling. Teams do not edit this.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - agent-access.yaml
+  - scaledjob.yaml

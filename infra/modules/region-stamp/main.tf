@@ -84,10 +84,13 @@ resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
   tags                  = local.tags
 }
 
-# Scan data. Private, keyless, zone-redundant inside the region only:
-# copying scans to another region would break data residency.
+# Scan data. Private, keyless, zone-redundant: survives the loss of a
+# datacentre. Geo-redundancy doubles the bill for data that is rarely read
+# again, so it is opted into per tier (the policy asks for a reason).
+# Azure's region pairs stay inside the EU and inside the US, so residency
+# holds either way; versioning and soft delete cover mistakes.
 resource "azurerm_storage_account" "scans" {
-  #checkov:skip=CKV_AZURE_206:ZRS on purpose; geo-replication would copy customer scans out of their data region
+  #checkov:skip=CKV_AZURE_206:ZRS by default; geo-redundancy doubles storage cost and is opted into per tier with a replication-reason tag
   #checkov:skip=CKV2_AZURE_1:Microsoft-managed keys by default; customer-managed keys are an option per tier, not a baseline
   #checkov:skip=CKV_AZURE_33:the queue service of this account is not used; uploads are queued in Service Bus
   name                            = substr(replace("st${local.name}scans", "-", ""), 0, 24)
@@ -103,7 +106,8 @@ resource "azurerm_storage_account" "scans" {
   default_to_oauth_authentication = true
 
   blob_properties {
-    versioning_enabled = true
+    versioning_enabled       = true
+    last_access_time_enabled = true # the tiering rules below need it
 
     delete_retention_policy {
       days = 30
@@ -131,8 +135,10 @@ resource "azurerm_storage_container" "processed" {
   container_access_type = "private"
 }
 
-# Scans are hot while a project is active, then rarely opened.
-# Moving them down the tiers is the biggest storage cost lever.
+# Scans are hot while a project is active, then rarely opened. Moving
+# them down the tiers is the biggest storage cost lever (docs/cost.md).
+# Archive is not offered on zone-redundant accounts, so cold is the last
+# tier here; a reopened project moves back to hot on first read.
 resource "azurerm_storage_management_policy" "scans" {
   storage_account_id = azurerm_storage_account.scans.id
 
@@ -147,9 +153,9 @@ resource "azurerm_storage_management_policy" "scans" {
 
     actions {
       base_blob {
-        tier_to_cool_after_days_since_last_access_time_greater_than    = var.cool_after_days
-        tier_to_cold_after_days_since_last_access_time_greater_than    = var.cold_after_days
-        tier_to_archive_after_days_since_last_access_time_greater_than = var.archive_after_days
+        tier_to_cool_after_days_since_last_access_time_greater_than = var.cool_after_days
+        tier_to_cold_after_days_since_last_access_time_greater_than = var.cold_after_days
+        auto_tier_to_hot_from_cool_enabled                          = true
       }
 
       version {

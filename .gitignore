@@ -7,3 +7,4 @@ infra/modules/**/.terraform.lock.hcl
 __pycache__/
 .venv/
 _site/
+rendered/

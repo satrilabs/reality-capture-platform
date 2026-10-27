@@ -45,12 +45,6 @@ variable "cold_after_days" {
   default     = 90
 }
 
-variable "archive_after_days" {
-  description = "Days without access before a scan moves to archive."
-  type        = number
-  default     = 365
-}
-
 variable "log_daily_quota_gb" {
   description = "Daily log ingestion cap, so a noisy service cannot run up the bill."
   type        = number

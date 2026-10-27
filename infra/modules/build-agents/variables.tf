@@ -32,10 +32,21 @@ variable "container_registry_id" {
   type        = string
 }
 
-variable "namespace" {
-  description = "Kubernetes namespace of the agent pods."
+variable "teams" {
+  description = "Teams with their own agents; each gets the namespace build-<team> (platform/build-agents/teams)."
+  type        = set(string)
+  default     = ["web"]
+}
+
+variable "keda_namespace" {
+  description = "Namespace KEDA is installed in."
   type        = string
-  default     = "build-agents"
+  default     = "keda"
+}
+
+variable "key_vault_id" {
+  description = "Key Vault holding the Azure DevOps agent token (secret azp-agent-token)."
+  type        = string
 }
 
 variable "os_type" {

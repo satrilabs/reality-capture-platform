@@ -41,7 +41,7 @@ flowchart LR
     afd -- us hostname --> api_us
 ```
 
-**Region stamps** ([infra/modules/region-stamp](infra/modules/region-stamp)). Each data region gets an identical, independent stamp. Nothing customer-related is shared, so one region's outage or mistake cannot reach the other, and adding a region is one more module call. Storage is zone-redundant inside the region and never geo-replicated, because copying scans abroad would break residency.
+**Region stamps** ([infra/modules/region-stamp](infra/modules/region-stamp)). Each data region gets an identical, independent stamp. Nothing customer-related is shared, so one region's outage or mistake cannot reach the other, and adding a region is one more module call. Storage is zone-redundant by default. Geo-redundancy doubles the bill for data that is rarely read again, so it is opted into per tier, with a reason the policy asks for; Azure's region pairs stay inside the EU and inside the US, so residency holds either way.
 
 **Global edge** ([infra/modules/global-edge](infra/modules/global-edge)). Front Door is the only shared piece. Each data region has its own endpoint and origin group, and an origin group only lists origins from its own region, so a failover can never route EU traffic to the US.
 
@@ -94,7 +94,17 @@ The risky example is the kind of change an agent produces when asked to "add an 
 
 ## Build agents for R&D
 
-[infra/modules/build-agents](infra/modules/build-agents) adds an AKS node pool that only exists while jobs run: Spot VMs, autoscaling from zero, ephemeral OS disks, tainted so only agent pods land there. Agents authenticate with workload identity, so no secret sits in the cluster. Teams bring their own build image; the platform owns the nodes, limits, identity and cost ceiling (`max_nodes`).
+Build capacity that exists only while jobs run, in a shared-responsibility model:
+
+- **The platform owns** the node pool ([infra/modules/build-agents](infra/modules/build-agents)): Spot VMs, autoscaling from zero, ephemeral OS disks, host encryption, taints so only agent pods land there, and the cost ceiling (`max_nodes`). It also owns placement, identity, secrets, network rules and scaling ([platform/build-agents/base](platform/build-agents/base)).
+- **Each team owns** its build image, pool name and resource size, in a small overlay ([platform/build-agents/teams/web](platform/build-agents/teams/web)). A new team copies that folder.
+
+KEDA watches the Azure DevOps pool and starts one agent pod per waiting job; the pod runs that job and exits. KEDA reads the Azure DevOps token straight from Key Vault, the agent gets it as a read-only file, and both authenticate with workload identity, so no secret is in Git or stored as a Kubernetes secret. Agents can only reach DNS and outbound HTTPS. A Spot eviction fails the job, and Azure DevOps retries it on a fresh agent; release builds can use a small regular pool instead.
+
+## Reliability and cost
+
+- [docs/reliability.md](docs/reliability.md): SLOs for upload, processing and the viewer, the error budget policy, burn-rate alerts, telemetry and recovery.
+- [docs/cost.md](docs/cost.md): what a terabyte of scans costs per tier and region (Azure list prices), what the tiering rule saves, and the levers ranked for this workload.
 
 ## Layout
 
@@ -106,13 +116,14 @@ infra/
   modules/build-agents/ Spot node pool and workload identity for pipeline agents
 policy/terraform/       Rego rules and their unit tests
 examples/plans/         plan JSON used to demonstrate the policy gate
+platform/build-agents/  KEDA agents: platform base, one overlay per team
 pipelines/              Azure DevOps: infra plan/apply, nightly drift
 scripts/                policy-check.sh used by the pipelines, build-site.sh for the demo
 site/                   the live demo page (published by .github/workflows/pages.yml)
+docs/                   reliability and cost notes
 ```
 
 ## Next
 
-- KEDA `ScaledJob` manifests for the agents, one pod per queued pipeline job
-- A small scan processor with OpenTelemetry traces and metrics, and SLOs for upload and processing time
-- Cost notes: what a terabyte of scans costs per month in each tier, and per region
+- The scan processor itself, instrumented as described in docs/reliability.md
+- An AKS cluster module for the agents' node pool to join

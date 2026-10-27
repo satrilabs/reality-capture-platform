@@ -1,0 +1,7 @@
+# The guardrails themselves. A change here, by a person or an agent, needs
+# a platform engineer's review, so an agent cannot loosen the rules that
+# check its own work. Enforced with a branch rule that requires code owner review.
+/policy/        @satrilabs
+/pipelines/     @satrilabs
+/.github/       @satrilabs
+/scripts/       @satrilabs

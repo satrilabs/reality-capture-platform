@@ -1,0 +1,27 @@
+# A team's part: its own build image, pool and resource size. Everything
+# else comes from the platform base. A new team copies this folder.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: build-web
+resources:
+  - namespace.yaml
+  - ../../base
+images:
+  - name: TEAM_BUILD_IMAGE
+    newName: acrrcpbuild.azurecr.io/build/web-node
+    newTag: "2026.10.2"
+patches:
+  - target:
+      kind: ScaledJob
+    patch: |
+      - op: replace
+        path: /spec/jobTargetRef/template/spec/containers/0/env/1/value
+        value: rcp-web
+      - op: replace
+        path: /spec/triggers/0/metadata/poolName
+        value: rcp-web
+      - op: replace
+        path: /spec/jobTargetRef/template/spec/containers/0/resources
+        value:
+          requests: { cpu: "4", memory: 8Gi }
+          limits: { cpu: "8", memory: 16Gi }
