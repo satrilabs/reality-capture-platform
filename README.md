@@ -9,7 +9,9 @@ I built it to work through the problems such a platform faces once hardware move
 - **AI coding agents write infrastructure.** That is fast, but it needs guardrails that do not depend on a human catching everything in review.
 - **Build capacity for R&D** that exists only while jobs run.
 
-Everything here can be checked without an Azure subscription: `terraform validate`, policy unit tests and a policy gate against example plans run in CI.
+Everything here can be checked without an Azure subscription: `terraform validate`, Checkov, policy unit tests and a policy gate against a real plan of the platform run in CI.
+
+**Live demo: [satrilabs.github.io/reality-capture-platform](https://satrilabs.github.io/reality-capture-platform/).** The policies below, compiled to WebAssembly, checking changes from an engineer or an AI agent in your browser. Pick a ready-made change or build your own.
 
 ## Architecture
 
@@ -74,6 +76,8 @@ Try it:
 opa test policy/ -v
 scripts/policy-check.sh examples/plans/ai-safe-change.json ai-agent    # Allowed.
 scripts/policy-check.sh examples/plans/ai-risky-change.json ai-agent   # Blocked, 7 reasons
+scripts/policy-check.sh examples/plans/blueprint-prod.json human       # the real 57-resource plan: Allowed
+scripts/policy-check.sh examples/plans/blueprint-prod.json ai-agent    # Blocked: too big, touches audit logging
 ```
 
 The risky example is the kind of change an agent produces when asked to "add an export bucket for a customer": a new storage account in the wrong region with public access and keys, a broad Contributor grant to make it work, a rename that silently replaces the main scan store, and removal of the policy that was in the way. Each of those is caught, with a reason the agent can act on.
@@ -103,7 +107,8 @@ infra/
 policy/terraform/       Rego rules and their unit tests
 examples/plans/         plan JSON used to demonstrate the policy gate
 pipelines/              Azure DevOps: infra plan/apply, nightly drift
-scripts/                policy-check.sh used by both pipelines
+scripts/                policy-check.sh used by the pipelines, build-site.sh for the demo
+site/                   the live demo page (published by .github/workflows/pages.yml)
 ```
 
 ## Next

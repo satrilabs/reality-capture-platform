@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Change Checker</title>
+  <meta name="description" content="Live demo: the platform's real Terraform policies, compiled to WebAssembly, checking changes written by people and AI agents.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Reality Capture Platform Blueprint · live demo</p>
+      <h1>AI Change Checker</h1>
+      <p class="lede">AI coding agents can write cloud infrastructure in seconds. Before any change reaches Azure, it is checked against the platform's rules. This page runs the <strong>real policies from the repository</strong>, compiled to WebAssembly, right in your browser.</p>
+      <ol class="flow" aria-label="How a change reaches production">
+        <li><span>1</span>Agent or engineer opens a pull request</li>
+        <li><span>2</span>Pipeline creates a Terraform plan</li>
+        <li class="here"><span>3</span>Checker reviews the plan <em>(this page)</em></li>
+        <li><span>4</span>A platform engineer approves</li>
+        <li><span>5</span>Pipeline applies exactly what was approved</li>
+      </ol>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel" aria-labelledby="try">
+      <div class="panel-head">
+        <h2 id="try">Try a change</h2>
+        <div class="segmented" role="radiogroup" aria-label="Who wrote the change">
+          <button type="button" role="radio" aria-checked="true" data-author="ai-agent">AI agent</button>
+          <button type="button" role="radio" aria-checked="false" data-author="human">Engineer</button>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" aria-selected="true" data-tab="examples">Ready-made changes</button>
+        <button type="button" role="tab" aria-selected="false" data-tab="build">Build your own</button>
+      </div>
+
+      <div class="grid">
+        <div class="left">
+          <div data-pane="examples">
+            <div class="examples" role="radiogroup" aria-label="Example changes">
+              <button type="button" class="example" role="radio" aria-checked="true" data-plan="ai-risky-change">
+                <strong>"Add an export bucket for a customer"</strong>
+                <span>What an agent might produce: wrong region, public access, a broad role to make it work, and the policy that was in the way removed.</span>
+              </button>
+              <button type="button" class="example" role="radio" aria-checked="false" data-plan="ai-safe-change">
+                <strong>"Add a thumbnails container"</strong>
+                <span>A small, ordinary change with a narrow read-only role.</span>
+              </button>
+              <button type="button" class="example" role="radio" aria-checked="false" data-plan="blueprint-prod">
+                <strong>The whole platform</strong>
+                <span>A real Terraform plan of both regions and the global edge: 57 resources.</span>
+              </button>
+            </div>
+          </div>
+
+          <form data-pane="build" hidden aria-label="Build a storage account change">
+            <fieldset>
+              <legend>New storage account for customer exports</legend>
+              <label>Customer's data region
+                <select name="dataRegion">
+                  <option value="eu">EU</option>
+                  <option value="us">US</option>
+                </select>
+              </label>
+              <label>Azure region
+                <select name="location">
+                  <option value="westeurope">West Europe</option>
+                  <option value="germanywestcentral">Germany West Central</option>
+                  <option value="eastus2">East US 2</option>
+                  <option value="eastus">East US</option>
+                </select>
+              </label>
+              <label>Replication
+                <select name="replication">
+                  <option value="ZRS">Zone-redundant, stays in region</option>
+                  <option value="GZRS">Geo-redundant, copies to a second region</option>
+                </select>
+              </label>
+              <label class="switch"><input type="checkbox" name="publicAccess"> Reachable from the internet</label>
+              <label class="switch"><input type="checkbox" name="keys"> Account keys switched on</label>
+              <label class="switch"><input type="checkbox" name="costTag" checked> Has a cost-center tag</label>
+            </fieldset>
+            <fieldset>
+              <legend>Access and existing data</legend>
+              <label>Give the export app the role
+                <select name="role">
+                  <option value="">No role</option>
+                  <option value="Storage Blob Data Reader">Storage Blob Data Reader</option>
+                  <option value="Contributor">Contributor</option>
+                  <option value="Owner">Owner</option>
+                </select>
+              </label>
+              <label class="switch"><input type="checkbox" name="replace"> Rename the main scan storage (forces delete and re-create)</label>
+            </fieldset>
+          </form>
+        </div>
+
+        <div class="right" aria-live="polite">
+          <div class="verdict" data-state="loading">
+            <p class="status">Loading the policies…</p>
+            <p class="meta"></p>
+          </div>
+          <ul class="findings"></ul>
+          <details class="plan">
+            <summary>Show the plan the checker received</summary>
+            <pre><code></code></pre>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="rules">
+      <h2 id="rules">The rules</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rule</th><th>Applies to</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Owner, cost-center and data-region tags</td><td>Everyone</td><td>Cost per team and customer; residency reporting</td></tr>
+            <tr><td>Azure region must match the customer's data region</td><td>Everyone</td><td>EU customer data never lands in a US region</td></tr>
+            <tr><td>Storage is private, keyless, TLS 1.2</td><td>Everyone</td><td>Scan data is customer data, sometimes court evidence</td></tr>
+            <tr><td>Build agents run on Spot VMs and scale to zero</td><td>Everyone</td><td>Build capacity costs nothing when idle</td></tr>
+            <tr><td>Geo-redundant storage needs a stated reason <em>(warning)</em></td><td>Everyone</td><td>It doubles the storage bill</td></tr>
+            <tr><td>No Owner, Contributor or access-admin grants</td><td>AI agents</td><td>An agent must not widen anyone's access</td></tr>
+            <tr><td>No deleting or replacing stateful resources</td><td>AI agents</td><td>A rename that forces a replace destroys data</td></tr>
+            <tr><td>No changes to Azure Policy or audit logging</td><td>AI agents</td><td>Agents must not switch off the guardrails</td></tr>
+            <tr><td>At most 25 resources per change</td><td>AI agents</td><td>Big changes get split so a reviewer can follow them</td></tr>
+            <tr><td>Deleting stateful resources needs a second approver <em>(warning)</em></td><td>Engineers</td><td>Same risk, but a person may have a reason</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <p>Source, Terraform and pipelines: <a href="https://github.com/satrilabs/reality-capture-platform">github.com/satrilabs/reality-capture-platform</a>. Policies are in <code>policy/terraform</code>; the same files gate the Azure DevOps pipeline. Evaluated with <a href="https://github.com/open-policy-agent/npm-opa-wasm">OPA WebAssembly</a>. Nothing you do here leaves your browser.</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
