@@ -2,7 +2,7 @@ package terraform.platform_test
 
 import data.terraform.platform
 
-good_tags := {"owner": "team-sphere", "cost-center": "cc-4711", "data-region": "eu"}
+good_tags := {"owner": "team-scans", "cost-center": "cc-4711", "data-region": "eu"}
 
 plan(changes) := {"resource_changes": changes}
 
@@ -35,7 +35,7 @@ test_compliant_plan_is_allowed if {
 }
 
 test_missing_tags_are_denied if {
-	after := object.union(object.remove(good_storage, ["tags"]), {"tags": {"owner": "team-sphere"}})
+	after := object.union(object.remove(good_storage, ["tags"]), {"tags": {"owner": "team-scans"}})
 	denies := platform.deny with input as plan([change("azurerm_storage_account", ["create"], after)])
 	some msg in denies
 	contains(msg, "missing required tags")

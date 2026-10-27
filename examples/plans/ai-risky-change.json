@@ -37,7 +37,7 @@
           "public_network_access_enabled": true,
           "allow_nested_items_to_be_public": false,
           "shared_access_key_enabled": true,
-          "tags": { "owner": "team-sphere", "data-region": "eu" }
+          "tags": { "owner": "team-scans", "data-region": "eu" }
         }
       }
     },
