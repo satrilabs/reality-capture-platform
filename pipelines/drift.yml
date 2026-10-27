@@ -1,0 +1,47 @@
+# Nightly drift check: does Azure still match the code?
+# A difference means someone changed something by hand, or a change failed
+# half way. The pipeline fails and lists the drifted resources; it never fixes
+# drift by itself, because the right fix may be in the code, not in Azure.
+trigger: none
+pr: none
+
+schedules:
+  - cron: "0 3 * * *"
+    displayName: Nightly drift check
+    branches:
+      include: [main]
+    always: true
+
+pool:
+  vmImage: ubuntu-24.04
+
+variables:
+  - group: rcp-prod-backend
+  - name: workingDirectory
+    value: infra/envs/prod
+
+steps:
+  - task: AzureCLI@2
+    displayName: Plan against live Azure
+    inputs:
+      azureSubscription: rcp-prod-plan
+      scriptType: bash
+      scriptLocation: inlineScript
+      addSpnToEnvironment: true
+      inlineScript: |
+        set -uo pipefail
+        export ARM_USE_OIDC=true ARM_OIDC_TOKEN="$idToken" ARM_CLIENT_ID="$servicePrincipalId" ARM_TENANT_ID="$tenantId"
+        export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+        terraform -chdir=$(workingDirectory) init -input=false \
+          -backend-config="storage_account_name=$(stateStorageAccount)" \
+          -backend-config="resource_group_name=$(stateResourceGroup)"
+        terraform -chdir=$(workingDirectory) plan -input=false -lock=false -detailed-exitcode -out=drift.tfplan
+        code=$?
+        if [ "$code" -eq 0 ]; then echo "No drift."; exit 0; fi
+        if [ "$code" -ne 2 ]; then echo "##vso[task.logissue type=error]Plan failed."; exit 1; fi
+        terraform -chdir=$(workingDirectory) show -json drift.tfplan \
+          | jq -r '.resource_changes[] | select(.change.actions != ["no-op"]) | "\(.change.actions | join("/"))  \(.address)"' \
+          | tee drift.txt
+        rm -f $(workingDirectory)/drift.tfplan
+        echo "##vso[task.logissue type=error]Drift found in $(wc -l < drift.txt) resources."
+        exit 1

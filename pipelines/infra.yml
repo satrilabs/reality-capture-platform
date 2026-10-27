@@ -1,0 +1,138 @@
+# Infrastructure pipeline. The only way a change reaches Azure.
+# Humans and AI agents go through the same gates; agents get stricter
+# policies and can never approve their own change.
+trigger:
+  branches:
+    include: [main]
+  paths:
+    include: [infra/*, policy/*]
+
+pr:
+  branches:
+    include: [main]
+  paths:
+    include: [infra/*, policy/*]
+
+pool:
+  vmImage: ubuntu-24.04
+
+variables:
+  - group: rcp-prod-backend # backend config, no secrets: OIDC service connection
+  - name: workingDirectory
+    value: infra/envs/prod
+  - name: opaVersion
+    value: 1.4.2
+
+stages:
+  - stage: Check
+    jobs:
+      - job: Static
+        steps:
+          - script: terraform fmt -check -recursive infra
+            displayName: Formatting
+          - script: |
+              terraform -chdir=$(workingDirectory) init -backend=false -input=false
+              terraform -chdir=$(workingDirectory) validate
+            displayName: Validate
+          - script: |
+              pipx install checkov
+              checkov --directory infra --framework terraform --compact --quiet
+            displayName: Checkov security scan
+          - script: |
+              curl -sSL -o opa https://github.com/open-policy-agent/opa/releases/download/v$(opaVersion)/opa_linux_amd64_static
+              chmod +x opa
+              ./opa test policy/ -v
+            displayName: Policy unit tests
+
+  - stage: Plan
+    dependsOn: Check
+    jobs:
+      - job: Plan
+        steps:
+          # Who wrote this change? Agent branches are named ai/<task>.
+          - script: |
+              branch="${SYSTEM_PULLREQUEST_SOURCEBRANCH:-$BUILD_SOURCEBRANCH}"
+              case "$branch" in
+                refs/heads/ai/*) author=ai-agent ;;
+                *) author=human ;;
+              esac
+              echo "Change author type: $author"
+              echo "##vso[task.setvariable variable=authorType;isOutput=true]$author"
+            name: author
+            displayName: Detect change author
+
+          - task: AzureCLI@2
+            displayName: Terraform plan
+            inputs:
+              azureSubscription: rcp-prod-plan # read-only identity, federated (no secret)
+              scriptType: bash
+              scriptLocation: inlineScript
+              addSpnToEnvironment: true
+              inlineScript: |
+                export ARM_USE_OIDC=true ARM_OIDC_TOKEN="$idToken" ARM_CLIENT_ID="$servicePrincipalId" ARM_TENANT_ID="$tenantId"
+                export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+                terraform -chdir=$(workingDirectory) init -input=false \
+                  -backend-config="storage_account_name=$(stateStorageAccount)" \
+                  -backend-config="resource_group_name=$(stateResourceGroup)"
+                terraform -chdir=$(workingDirectory) plan -input=false -lock-timeout=5m -out=plan.tfplan
+                terraform -chdir=$(workingDirectory) show -json plan.tfplan > plan.json
+
+          - script: |
+              curl -sSL -o opa https://github.com/open-policy-agent/opa/releases/download/v$(opaVersion)/opa_linux_amd64_static
+              chmod +x opa
+              OPA=./opa scripts/policy-check.sh plan.json "$(author.authorType)"
+            displayName: Policy gate
+
+          # The plan file holds secrets, so it is never published. Only a hash
+          # of what will change is kept; apply re-plans and must match it.
+          - script: |
+              jq -S '[.resource_changes[] | select(.change.actions != ["no-op"]) | {address, actions: .change.actions, after: .change.after}]' plan.json \
+                | sha256sum | cut -d' ' -f1 > plan.sha256
+              jq -r '.resource_changes[] | select(.change.actions != ["no-op"]) | "\(.change.actions | join("/"))  \(.address)"' plan.json > plan-summary.txt
+              cat plan-summary.txt
+              rm -f plan.json $(workingDirectory)/plan.tfplan
+            displayName: Fingerprint the plan
+
+          - publish: plan.sha256
+            artifact: plan-fingerprint
+          - publish: plan-summary.txt
+            artifact: plan-summary
+
+  - stage: Apply
+    dependsOn: Plan
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      # The environment carries the approval check: a platform engineer
+      # approves, and the person or agent that wrote the change cannot.
+      - deployment: Apply
+        environment: rcp-prod-infra
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - download: current
+                  artifact: plan-fingerprint
+                - task: AzureCLI@2
+                  displayName: Re-plan, compare, apply
+                  inputs:
+                    azureSubscription: rcp-prod-apply # write identity, only usable from this environment
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    inlineScript: |
+                      set -euo pipefail
+                      export ARM_USE_OIDC=true ARM_OIDC_TOKEN="$idToken" ARM_CLIENT_ID="$servicePrincipalId" ARM_TENANT_ID="$tenantId"
+                      export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+                      terraform -chdir=$(workingDirectory) init -input=false \
+                        -backend-config="storage_account_name=$(stateStorageAccount)" \
+                        -backend-config="resource_group_name=$(stateResourceGroup)"
+                      terraform -chdir=$(workingDirectory) plan -input=false -lock-timeout=5m -out=plan.tfplan
+                      terraform -chdir=$(workingDirectory) show -json plan.tfplan \
+                        | jq -S '[.resource_changes[] | select(.change.actions != ["no-op"]) | {address, actions: .change.actions, after: .change.after}]' \
+                        | sha256sum | cut -d' ' -f1 > now.sha256
+                      if ! cmp -s now.sha256 "$(Pipeline.Workspace)/plan-fingerprint/plan.sha256"; then
+                        echo "##vso[task.logissue type=error]The plan changed after approval. Re-run the pipeline and review again."
+                        exit 1
+                      fi
+                      terraform -chdir=$(workingDirectory) apply -input=false -lock-timeout=5m plan.tfplan

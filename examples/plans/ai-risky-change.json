@@ -1,0 +1,65 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.9.8",
+  "resource_changes": [
+    {
+      "address": "module.stamp_eu.azurerm_storage_account.scans",
+      "module_address": "module.stamp_eu",
+      "mode": "managed",
+      "type": "azurerm_storage_account",
+      "name": "scans",
+      "change": {
+        "actions": ["delete", "create"],
+        "after": {
+          "name": "strcpeuprodscans2",
+          "location": "westeurope",
+          "account_replication_type": "ZRS",
+          "min_tls_version": "TLS1_2",
+          "public_network_access_enabled": false,
+          "allow_nested_items_to_be_public": false,
+          "shared_access_key_enabled": false,
+          "tags": { "owner": "platform-team", "cost-center": "cc-4711", "data-region": "eu", "environment": "prod", "workload": "scan-data" }
+        }
+      }
+    },
+    {
+      "address": "azurerm_storage_account.export",
+      "mode": "managed",
+      "type": "azurerm_storage_account",
+      "name": "export",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "name": "strcpexport",
+          "location": "eastus",
+          "account_replication_type": "RAGRS",
+          "min_tls_version": "TLS1_2",
+          "public_network_access_enabled": true,
+          "allow_nested_items_to_be_public": false,
+          "shared_access_key_enabled": true,
+          "tags": { "owner": "team-sphere", "data-region": "eu" }
+        }
+      }
+    },
+    {
+      "address": "azurerm_role_assignment.export_writer",
+      "mode": "managed",
+      "type": "azurerm_role_assignment",
+      "name": "export_writer",
+      "change": {
+        "actions": ["create"],
+        "after": { "role_definition_name": "Contributor", "scope": "/subscriptions/00000000-0000-0000-0000-000000000000" }
+      }
+    },
+    {
+      "address": "azurerm_subscription_policy_assignment.deny_public_storage",
+      "mode": "managed",
+      "type": "azurerm_subscription_policy_assignment",
+      "name": "deny_public_storage",
+      "change": {
+        "actions": ["delete"],
+        "after": null
+      }
+    }
+  ]
+}

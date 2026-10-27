@@ -1,0 +1,50 @@
+# Public CI for this repository: everything that can be checked without
+# an Azure subscription. The production path is pipelines/infra.yml.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    env:
+      OPA_VERSION: 1.4.2
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Terraform format and validate
+        run: |
+          terraform fmt -check -recursive infra
+          terraform -chdir=infra/envs/prod init -backend=false -input=false
+          terraform -chdir=infra/envs/prod validate
+
+      - name: Install OPA
+        run: |
+          curl -sSL -o /usr/local/bin/opa "https://github.com/open-policy-agent/opa/releases/download/v${OPA_VERSION}/opa_linux_amd64_static"
+          chmod +x /usr/local/bin/opa
+
+      - name: Policy unit tests
+        run: opa test policy/ -v
+
+      - name: Policy gate on the example plans
+        run: |
+          scripts/policy-check.sh examples/plans/ai-safe-change.json ai-agent
+          if scripts/policy-check.sh examples/plans/ai-risky-change.json ai-agent; then
+            echo "The risky example should have been blocked" >&2
+            exit 1
+          fi
+
+      - name: Checkov security scan
+        run: |
+          pipx install checkov
+          checkov --directory infra --framework terraform --compact --quiet --soft-fail

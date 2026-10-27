@@ -1,0 +1,44 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.9.8",
+  "resource_changes": [
+    {
+      "address": "module.stamp_eu.azurerm_storage_container.thumbnails",
+      "module_address": "module.stamp_eu",
+      "mode": "managed",
+      "type": "azurerm_storage_container",
+      "name": "thumbnails",
+      "change": {
+        "actions": ["create"],
+        "after": { "name": "thumbnails", "container_access_type": "private" }
+      }
+    },
+    {
+      "address": "module.stamp_eu.azurerm_role_assignment.viewer_read_thumbnails",
+      "module_address": "module.stamp_eu",
+      "mode": "managed",
+      "type": "azurerm_role_assignment",
+      "name": "viewer_read_thumbnails",
+      "change": {
+        "actions": ["create"],
+        "after": { "role_definition_name": "Storage Blob Data Reader" }
+      }
+    },
+    {
+      "address": "module.stamp_eu.azurerm_log_analytics_workspace.stamp",
+      "module_address": "module.stamp_eu",
+      "mode": "managed",
+      "type": "azurerm_log_analytics_workspace",
+      "name": "stamp",
+      "change": {
+        "actions": ["update"],
+        "after": {
+          "location": "westeurope",
+          "retention_in_days": 30,
+          "daily_quota_gb": 8,
+          "tags": { "owner": "platform-team", "cost-center": "cc-4711", "data-region": "eu", "environment": "prod" }
+        }
+      }
+    }
+  ]
+}
