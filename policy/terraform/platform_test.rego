@@ -69,6 +69,19 @@ test_us_data_in_us_region_is_allowed if {
 	count(denies) == 0
 }
 
+test_global_resource_in_approved_region_is_allowed if {
+	after := {"location": "westeurope", "tags": object.union(good_tags, {"data-region": "global"})}
+	denies := platform.deny with input as plan([change("azurerm_resource_group", ["create"], after)])
+	count(denies) == 0
+}
+
+test_unknown_data_region_is_denied if {
+	after := {"location": "westeurope", "tags": object.union(good_tags, {"data-region": "apac"})}
+	denies := platform.deny with input as plan([change("azurerm_resource_group", ["create"], after)])
+	some msg in denies
+	contains(msg, "not allowed for data-region 'apac'")
+}
+
 owner_grant := change("azurerm_role_assignment", ["create"], {"role_definition_name": "Owner", "principal_id": "abc"})
 
 test_agent_cannot_grant_owner if {

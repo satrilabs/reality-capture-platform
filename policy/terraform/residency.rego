@@ -2,11 +2,13 @@
 # An EU project must never land in a US region, and the other way round.
 package terraform.platform
 
-allowed_locations := {
+region_locations := {
 	"eu": {"westeurope", "northeurope", "germanywestcentral"},
 	"us": {"eastus", "eastus2", "westus3"},
-	"global": {"global"},
 }
+
+# Shared resources hold no customer data, so they may sit in any approved region.
+allowed_locations := object.union(region_locations, {"global": union({locations | some locations in region_locations})})
 
 deny contains msg if {
 	some rc in input.resource_changes

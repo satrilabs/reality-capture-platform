@@ -31,9 +31,65 @@ resource "azurerm_subnet" "private_endpoints" {
   address_prefixes     = [cidrsubnet(var.address_space, 4, 0)]
 }
 
+# Only traffic from inside the VNet reaches the private endpoints.
+resource "azurerm_network_security_group" "private_endpoints" {
+  name                = "nsg-${local.name}-private-endpoints"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.stamp.name
+  tags                = local.tags
+
+  security_rule {
+    name                       = "allow-vnet-https"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "VirtualNetwork"
+  }
+
+  security_rule {
+    name                       = "deny-all-inbound"
+    priority                   = 4096
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "private_endpoints" {
+  subnet_id                 = azurerm_subnet.private_endpoints.id
+  network_security_group_id = azurerm_network_security_group.private_endpoints.id
+}
+
+# Without this zone the storage name would still resolve to its public
+# address, and private access would silently fail.
+resource "azurerm_private_dns_zone" "blob" {
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = azurerm_resource_group.stamp.name
+  tags                = local.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
+  name                  = "link-${local.name}"
+  resource_group_name   = azurerm_resource_group.stamp.name
+  private_dns_zone_name = azurerm_private_dns_zone.blob.name
+  virtual_network_id    = azurerm_virtual_network.stamp.id
+  tags                  = local.tags
+}
+
 # Scan data. Private, keyless, zone-redundant inside the region only:
 # copying scans to another region would break data residency.
 resource "azurerm_storage_account" "scans" {
+  #checkov:skip=CKV_AZURE_206:ZRS on purpose; geo-replication would copy customer scans out of their data region
+  #checkov:skip=CKV2_AZURE_1:Microsoft-managed keys by default; customer-managed keys are an option per tier, not a baseline
+  #checkov:skip=CKV_AZURE_33:the queue service of this account is not used; uploads are queued in Service Bus
   name                            = substr(replace("st${local.name}scans", "-", ""), 0, 24)
   location                        = var.location
   resource_group_name             = azurerm_resource_group.stamp.name
@@ -62,12 +118,14 @@ resource "azurerm_storage_account" "scans" {
 }
 
 resource "azurerm_storage_container" "raw" {
+  #checkov:skip=CKV2_AZURE_21:reads, writes and deletes are logged by the blob-audit diagnostic setting on the blob service
   name                  = "raw-scans"
   storage_account_id    = azurerm_storage_account.scans.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "processed" {
+  #checkov:skip=CKV2_AZURE_21:reads, writes and deletes are logged by the blob-audit diagnostic setting on the blob service
   name                  = "processed"
   storage_account_id    = azurerm_storage_account.scans.id
   container_access_type = "private"
@@ -114,6 +172,31 @@ resource "azurerm_private_endpoint" "scans_blob" {
     subresource_names              = ["blob"]
     is_manual_connection           = false
   }
+
+  private_dns_zone_group {
+    name                 = "blob"
+    private_dns_zone_ids = [azurerm_private_dns_zone.blob.id]
+  }
+}
+
+# Every read, write and delete of scan data is logged: who opened which
+# customer's scans is an audit question (and court evidence for public safety).
+resource "azurerm_monitor_diagnostic_setting" "scans_blob" {
+  name                       = "blob-audit"
+  target_resource_id         = "${azurerm_storage_account.scans.id}/blobServices/default"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.stamp.id
+
+  enabled_log {
+    category = "StorageRead"
+  }
+
+  enabled_log {
+    category = "StorageWrite"
+  }
+
+  enabled_log {
+    category = "StorageDelete"
+  }
 }
 
 # Every finished upload becomes a message on a queue. Processing workers
@@ -121,6 +204,9 @@ resource "azurerm_private_endpoint" "scans_blob" {
 # Standard tier has no private endpoints, so keys are switched off and only
 # Entra identities can connect. Premium with a private endpoint when volume pays for it.
 resource "azurerm_servicebus_namespace" "stamp" {
+  #checkov:skip=CKV_AZURE_204:Standard tier has no private endpoints; keys are off, so only Entra identities can connect
+  #checkov:skip=CKV_AZURE_201:customer-managed keys need the Premium tier
+  #checkov:skip=CKV_AZURE_199:double encryption needs the Premium tier
   name                          = "sb-${local.name}"
   location                      = var.location
   resource_group_name           = azurerm_resource_group.stamp.name
@@ -129,6 +215,10 @@ resource "azurerm_servicebus_namespace" "stamp" {
   public_network_access_enabled = true
   minimum_tls_version           = "1.2"
   tags                          = local.tags
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_servicebus_queue" "scan_uploaded" {

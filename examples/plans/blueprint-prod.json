@@ -1,0 +1,1839 @@
+{
+ "format_version": "1.2",
+ "terraform_version": "1.15.8",
+ "resource_changes": [
+  {
+   "address": "azurerm_resource_group.global",
+   "mode": "managed",
+   "type": "azurerm_resource_group",
+   "name": "global",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "westeurope",
+     "managed_by": null,
+     "name": "rg-rcp-global-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "global",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.edge.azurerm_cdn_frontdoor_endpoint.region[\"eu\"]",
+   "module_address": "module.edge",
+   "mode": "managed",
+   "type": "azurerm_cdn_frontdoor_endpoint",
+   "name": "region",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "enabled": true,
+     "name": "rcp-eu-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "eu",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.edge.azurerm_cdn_frontdoor_endpoint.region[\"us\"]",
+   "module_address": "module.edge",
+   "mode": "managed",
+   "type": "azurerm_cdn_frontdoor_endpoint",
+   "name": "region",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "enabled": true,
+     "name": "rcp-us-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "us",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.edge.azurerm_cdn_frontdoor_firewall_policy.edge",
+   "module_address": "module.edge",
+   "mode": "managed",
+   "type": "azurerm_cdn_frontdoor_firewall_policy",
+   "name": "edge",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "captcha_cookie_expiration_in_minutes": 30,
+     "custom_block_response_body": null,
+     "custom_block_response_status_code": null,
+     "custom_rule": [],
+     "enabled": true,
+     "js_challenge_cookie_expiration_in_minutes": 30,
+     "log_scrubbing": [],
+     "managed_rule": [
+      {
+       "action": "Block",
+       "exclusion": [],
+       "override": [],
+       "type": "Microsoft_DefaultRuleSet",
+       "version": "2.1"
+      },
+      {
+       "action": "Block",
+       "exclusion": [],
+       "override": [],
+       "type": "Microsoft_BotManagerRuleSet",
+       "version": "1.1"
+      }
+     ],
+     "mode": "Prevention",
+     "name": "wafrcpprod",
+     "redirect_url": null,
+     "request_body_check_enabled": true,
+     "resource_group_name": "rg-rcp-global-prod",
+     "sku_name": "Premium_AzureFrontDoor",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "global",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.edge.azurerm_cdn_frontdoor_origin.region[\"eu-0\"]",
+   "module_address": "module.edge",
+   "mode": "managed",
+   "type": "azurerm_cdn_frontdoor_origin",
+   "name": "region",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "certificate_name_check_enabled": true,
+     "enabled": true,
+     "host_name": "api-eu-1.example.net",
+     "http_port": 80,
+     "https_port": 443,
+     "name": "origin-eu-0",
+     "origin_host_header": "api-eu-1.example.net",
+     "priority": 1,
+     "private_link": [],
+     "timeouts": null,
+     "weight": 500
+    }
+   }
+  },
+  {
+   "address": "module.edge.azurerm_cdn_frontdoor_origin.region[\"eu-1\"]",
+   "module_address": "module.edge",
+   "mode": "managed",
+   "type": "azurerm_cdn_frontdoor_origin",
+   "name": "region",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "certificate_name_check_enabled": true,
+     "enabled": true,
+     "host_name": "api-eu-2.example.net",
+     "http_port": 80,
+     "https_port": 443,
+     "name": "origin-eu-1",
+     "origin_host_header": "api-eu-2.example.net",
+     "priority": 1,
+     "private_link": [],
+     "timeouts": null,
+     "weight": 500
+    }
+   }
+  },
+  {
+   "address": "module.edge.azurerm_cdn_frontdoor_origin.region[\"us-0\"]",
+   "module_address": "module.edge",
+   "mode": "managed",
+   "type": "azurerm_cdn_frontdoor_origin",
+   "name": "region",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "certificate_name_check_enabled": true,
+     "enabled": true,
+     "host_name": "api-us-1.example.net",
+     "http_port": 80,
+     "https_port": 443,
+     "name": "origin-us-0",
+     "origin_host_header": "api-us-1.example.net",
+     "priority": 1,
+     "private_link": [],
+     "timeouts": null,
+     "weight": 500
+    }
+   }
+  },
+  {
+   "address": "module.edge.azurerm_cdn_frontdoor_origin_group.region[\"eu\"]",
+   "module_address": "module.edge",
+   "mode": "managed",
+   "type": "azurerm_cdn_frontdoor_origin_group",
+   "name": "region",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "health_probe": [
+      {
+       "interval_in_seconds": 30,
+       "path": "/healthz",
+       "protocol": "Https",
+       "request_type": "GET"
+      }
+     ],
+     "load_balancing": [
+      {
+       "additional_latency_in_milliseconds": 50,
+       "sample_size": 4,
+       "successful_samples_required": 3
+      }
+     ],
+     "name": "og-eu",
+     "restore_traffic_time_to_healed_or_new_endpoint_in_minutes": 10,
+     "session_affinity_enabled": true,
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.edge.azurerm_cdn_frontdoor_origin_group.region[\"us\"]",
+   "module_address": "module.edge",
+   "mode": "managed",
+   "type": "azurerm_cdn_frontdoor_origin_group",
+   "name": "region",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "health_probe": [
+      {
+       "interval_in_seconds": 30,
+       "path": "/healthz",
+       "protocol": "Https",
+       "request_type": "GET"
+      }
+     ],
+     "load_balancing": [
+      {
+       "additional_latency_in_milliseconds": 50,
+       "sample_size": 4,
+       "successful_samples_required": 3
+      }
+     ],
+     "name": "og-us",
+     "restore_traffic_time_to_healed_or_new_endpoint_in_minutes": 10,
+     "session_affinity_enabled": true,
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.edge.azurerm_cdn_frontdoor_profile.edge",
+   "module_address": "module.edge",
+   "mode": "managed",
+   "type": "azurerm_cdn_frontdoor_profile",
+   "name": "edge",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "identity": [],
+     "log_scrubbing_rule": [],
+     "name": "afd-rcp-prod",
+     "resource_group_name": "rg-rcp-global-prod",
+     "response_timeout_seconds": 120,
+     "sku_name": "Premium_AzureFrontDoor",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "global",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.edge.azurerm_cdn_frontdoor_route.region[\"eu\"]",
+   "module_address": "module.edge",
+   "mode": "managed",
+   "type": "azurerm_cdn_frontdoor_route",
+   "name": "region",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "cache": [],
+     "cdn_frontdoor_custom_domain_ids": null,
+     "cdn_frontdoor_origin_path": null,
+     "cdn_frontdoor_rule_set_ids": null,
+     "enabled": true,
+     "forwarding_protocol": "HttpsOnly",
+     "https_redirect_enabled": false,
+     "link_to_default_domain": true,
+     "name": "route-eu",
+     "patterns_to_match": [
+      "/*"
+     ],
+     "supported_protocols": [
+      "Https"
+     ],
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.edge.azurerm_cdn_frontdoor_route.region[\"us\"]",
+   "module_address": "module.edge",
+   "mode": "managed",
+   "type": "azurerm_cdn_frontdoor_route",
+   "name": "region",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "cache": [],
+     "cdn_frontdoor_custom_domain_ids": null,
+     "cdn_frontdoor_origin_path": null,
+     "cdn_frontdoor_rule_set_ids": null,
+     "enabled": true,
+     "forwarding_protocol": "HttpsOnly",
+     "https_redirect_enabled": false,
+     "link_to_default_domain": true,
+     "name": "route-us",
+     "patterns_to_match": [
+      "/*"
+     ],
+     "supported_protocols": [
+      "Https"
+     ],
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.edge.azurerm_cdn_frontdoor_security_policy.edge",
+   "module_address": "module.edge",
+   "mode": "managed",
+   "type": "azurerm_cdn_frontdoor_security_policy",
+   "name": "edge",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "name": "waf",
+     "security_policies": [
+      {
+       "firewall": [
+        {
+         "association": [
+          {
+           "domain": [
+            {},
+            {}
+           ],
+           "patterns_to_match": [
+            "/*"
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ],
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_eventgrid_system_topic.scans",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_eventgrid_system_topic",
+   "name": "scans",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "identity": [
+      {
+       "identity_ids": null,
+       "type": "SystemAssigned"
+      }
+     ],
+     "location": "westeurope",
+     "name": "egst-rcp-eu-prod-scans",
+     "resource_group_name": "rg-rcp-eu-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "eu",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null,
+     "topic_type": "Microsoft.Storage.StorageAccounts"
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_eventgrid_system_topic_event_subscription.scan_uploaded",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_eventgrid_system_topic_event_subscription",
+   "name": "scan_uploaded",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "advanced_filter": [],
+     "advanced_filtering_on_arrays_enabled": false,
+     "azure_function_endpoint": [],
+     "dead_letter_identity": [],
+     "delivery_identity": [
+      {
+       "type": "SystemAssigned",
+       "user_assigned_identity": null
+      }
+     ],
+     "delivery_property": [],
+     "event_delivery_schema": "EventGridSchema",
+     "expiration_time_utc": null,
+     "included_event_types": [
+      "Microsoft.Storage.BlobCreated"
+     ],
+     "labels": null,
+     "name": "scan-uploaded",
+     "resource_group_name": "rg-rcp-eu-prod",
+     "service_bus_topic_endpoint_id": null,
+     "storage_blob_dead_letter_destination": [],
+     "storage_queue_endpoint": [],
+     "subject_filter": [
+      {
+       "case_sensitive": null,
+       "subject_begins_with": "/blobServices/default/containers/raw-scans/",
+       "subject_ends_with": null
+      }
+     ],
+     "system_topic": "egst-rcp-eu-prod-scans",
+     "timeouts": null,
+     "webhook_endpoint": []
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_log_analytics_workspace.stamp",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_log_analytics_workspace",
+   "name": "stamp",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "allow_resource_only_permissions": true,
+     "cmk_for_query_forced": null,
+     "daily_quota_gb": 5,
+     "data_collection_rule_id": null,
+     "identity": [],
+     "immediate_data_purge_on_30_days_enabled": null,
+     "internet_ingestion_enabled": true,
+     "internet_query_enabled": true,
+     "local_authentication_enabled": true,
+     "location": "westeurope",
+     "name": "log-rcp-eu-prod",
+     "reservation_capacity_in_gb_per_day": null,
+     "resource_group_name": "rg-rcp-eu-prod",
+     "retention_in_days": 30,
+     "sku": "PerGB2018",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "eu",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_monitor_diagnostic_setting.scans_blob",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_monitor_diagnostic_setting",
+   "name": "scans_blob",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "enabled_log": [
+      {
+       "category": "StorageDelete",
+       "category_group": "",
+       "retention_policy": []
+      },
+      {
+       "category": "StorageRead",
+       "category_group": "",
+       "retention_policy": []
+      },
+      {
+       "category": "StorageWrite",
+       "category_group": "",
+       "retention_policy": []
+      }
+     ],
+     "eventhub_authorization_rule_id": null,
+     "eventhub_name": null,
+     "name": "blob-audit",
+     "partner_solution_id": null,
+     "storage_account_id": null,
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_network_security_group.private_endpoints",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_network_security_group",
+   "name": "private_endpoints",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "westeurope",
+     "name": "nsg-rcp-eu-prod-private-endpoints",
+     "resource_group_name": "rg-rcp-eu-prod",
+     "security_rule": [
+      {
+       "access": "Allow",
+       "description": "",
+       "destination_address_prefix": "VirtualNetwork",
+       "destination_address_prefixes": [],
+       "destination_application_security_group_ids": [],
+       "destination_port_range": "443",
+       "destination_port_ranges": [],
+       "direction": "Inbound",
+       "name": "allow-vnet-https",
+       "priority": 100,
+       "protocol": "Tcp",
+       "source_address_prefix": "VirtualNetwork",
+       "source_address_prefixes": [],
+       "source_application_security_group_ids": [],
+       "source_port_range": "*",
+       "source_port_ranges": []
+      },
+      {
+       "access": "Deny",
+       "description": "",
+       "destination_address_prefix": "*",
+       "destination_address_prefixes": [],
+       "destination_application_security_group_ids": [],
+       "destination_port_range": "*",
+       "destination_port_ranges": [],
+       "direction": "Inbound",
+       "name": "deny-all-inbound",
+       "priority": 4096,
+       "protocol": "*",
+       "source_address_prefix": "*",
+       "source_address_prefixes": [],
+       "source_application_security_group_ids": [],
+       "source_port_range": "*",
+       "source_port_ranges": []
+      }
+     ],
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "eu",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_private_dns_zone.blob",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_private_dns_zone",
+   "name": "blob",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "name": "privatelink.blob.core.windows.net",
+     "resource_group_name": "rg-rcp-eu-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "eu",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_private_dns_zone_virtual_network_link.blob",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_private_dns_zone_virtual_network_link",
+   "name": "blob",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "name": "link-rcp-eu-prod",
+     "private_dns_zone_name": "privatelink.blob.core.windows.net",
+     "registration_enabled": false,
+     "resource_group_name": "rg-rcp-eu-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "eu",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_private_endpoint.scans_blob",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_private_endpoint",
+   "name": "scans_blob",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "custom_network_interface_name": null,
+     "edge_zone": null,
+     "ip_configuration": [],
+     "location": "westeurope",
+     "name": "pe-rcp-eu-prod-blob",
+     "private_dns_zone_group": [
+      {
+       "name": "blob"
+      }
+     ],
+     "private_service_connection": [
+      {
+       "is_manual_connection": false,
+       "name": "blob",
+       "private_connection_resource_alias": null,
+       "request_message": null,
+       "subresource_names": [
+        "blob"
+       ]
+      }
+     ],
+     "resource_group_name": "rg-rcp-eu-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "eu",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_resource_group.stamp",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_resource_group",
+   "name": "stamp",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "westeurope",
+     "managed_by": null,
+     "name": "rg-rcp-eu-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "eu",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_role_assignment.eventgrid_to_queue",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_role_assignment",
+   "name": "eventgrid_to_queue",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "condition": null,
+     "delegated_managed_identity_resource_id": null,
+     "description": null,
+     "role_definition_name": "Azure Service Bus Data Sender",
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_role_assignment.processor_blob",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_role_assignment",
+   "name": "processor_blob",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "condition": null,
+     "delegated_managed_identity_resource_id": null,
+     "description": null,
+     "role_definition_name": "Storage Blob Data Contributor",
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_role_assignment.processor_queue",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_role_assignment",
+   "name": "processor_queue",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "condition": null,
+     "delegated_managed_identity_resource_id": null,
+     "description": null,
+     "role_definition_name": "Azure Service Bus Data Receiver",
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_servicebus_namespace.stamp",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_servicebus_namespace",
+   "name": "stamp",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "capacity": 0,
+     "customer_managed_key": [],
+     "identity": [
+      {
+       "identity_ids": null,
+       "type": "SystemAssigned"
+      }
+     ],
+     "local_auth_enabled": false,
+     "location": "westeurope",
+     "minimum_tls_version": "1.2",
+     "name": "sb-rcp-eu-prod",
+     "premium_messaging_partitions": 0,
+     "public_network_access_enabled": true,
+     "resource_group_name": "rg-rcp-eu-prod",
+     "sku": "Standard",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "eu",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_servicebus_queue.scan_uploaded",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_servicebus_queue",
+   "name": "scan_uploaded",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "batched_operations_enabled": true,
+     "dead_lettering_on_message_expiration": true,
+     "duplicate_detection_history_time_window": "PT10M",
+     "express_enabled": false,
+     "forward_dead_lettered_messages_to": null,
+     "forward_to": null,
+     "lock_duration": "PT5M",
+     "max_delivery_count": 5,
+     "name": "scan-uploaded",
+     "partitioning_enabled": false,
+     "requires_duplicate_detection": false,
+     "requires_session": false,
+     "status": "Active",
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_storage_account.scans",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_storage_account",
+   "name": "scans",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "account_kind": "StorageV2",
+     "account_replication_type": "ZRS",
+     "account_tier": "Standard",
+     "allow_nested_items_to_be_public": false,
+     "allowed_copy_scope": null,
+     "azure_files_authentication": [],
+     "blob_properties": [
+      {
+       "change_feed_enabled": false,
+       "change_feed_retention_in_days": null,
+       "container_delete_retention_policy": [
+        {
+         "days": 30
+        }
+       ],
+       "cors_rule": [],
+       "delete_retention_policy": [
+        {
+         "days": 30,
+         "permanent_delete_enabled": false
+        }
+       ],
+       "last_access_time_enabled": false,
+       "restore_policy": [],
+       "versioning_enabled": true
+      }
+     ],
+     "cross_tenant_replication_enabled": false,
+     "custom_domain": [],
+     "customer_managed_key": [],
+     "default_to_oauth_authentication": true,
+     "dns_endpoint_type": "Standard",
+     "edge_zone": null,
+     "https_traffic_only_enabled": true,
+     "identity": [],
+     "immutability_policy": [],
+     "infrastructure_encryption_enabled": false,
+     "is_hns_enabled": false,
+     "local_user_enabled": true,
+     "location": "westeurope",
+     "min_tls_version": "TLS1_2",
+     "name": "strcpeuprodscans",
+     "nfsv3_enabled": false,
+     "provisioned_billing_model_version": null,
+     "public_network_access_enabled": false,
+     "queue_encryption_key_type": "Service",
+     "resource_group_name": "rg-rcp-eu-prod",
+     "sas_policy": [],
+     "sftp_enabled": false,
+     "shared_access_key_enabled": false,
+     "table_encryption_key_type": "Service",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "eu",
+      "environment": "prod",
+      "owner": "platform-team",
+      "workload": "scan-data"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_storage_container.processed",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_storage_container",
+   "name": "processed",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "container_access_type": "private",
+     "encryption_scope_override_enabled": true,
+     "name": "processed",
+     "storage_account_name": null,
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_storage_container.raw",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_storage_container",
+   "name": "raw",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "container_access_type": "private",
+     "encryption_scope_override_enabled": true,
+     "name": "raw-scans",
+     "storage_account_name": null,
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_storage_management_policy.scans",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_storage_management_policy",
+   "name": "scans",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "rule": [
+      {
+       "actions": [
+        {
+         "base_blob": [
+          {
+           "auto_tier_to_hot_from_cool_enabled": null,
+           "delete_after_days_since_creation_greater_than": -1,
+           "delete_after_days_since_last_access_time_greater_than": -1,
+           "delete_after_days_since_modification_greater_than": -1,
+           "tier_to_archive_after_days_since_creation_greater_than": -1,
+           "tier_to_archive_after_days_since_last_access_time_greater_than": 365,
+           "tier_to_archive_after_days_since_last_tier_change_greater_than": -1,
+           "tier_to_archive_after_days_since_modification_greater_than": -1,
+           "tier_to_cold_after_days_since_creation_greater_than": -1,
+           "tier_to_cold_after_days_since_last_access_time_greater_than": 90,
+           "tier_to_cold_after_days_since_modification_greater_than": -1,
+           "tier_to_cool_after_days_since_creation_greater_than": -1,
+           "tier_to_cool_after_days_since_last_access_time_greater_than": 30,
+           "tier_to_cool_after_days_since_modification_greater_than": -1
+          }
+         ],
+         "snapshot": [],
+         "version": [
+          {
+           "change_tier_to_archive_after_days_since_creation": -1,
+           "change_tier_to_cool_after_days_since_creation": -1,
+           "delete_after_days_since_creation": 90,
+           "tier_to_archive_after_days_since_last_tier_change_greater_than": -1,
+           "tier_to_cold_after_days_since_creation_greater_than": -1
+          }
+         ]
+        }
+       ],
+       "enabled": true,
+       "filters": [
+        {
+         "blob_types": [
+          "blockBlob"
+         ],
+         "match_blob_index_tag": [],
+         "prefix_match": [
+          "processed/",
+          "raw-scans/"
+         ]
+        }
+       ],
+       "name": "tier-down-scans"
+      }
+     ],
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_subnet.private_endpoints",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_subnet",
+   "name": "private_endpoints",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "address_prefixes": [
+      "10.10.0.0/20"
+     ],
+     "default_outbound_access_enabled": true,
+     "delegation": [],
+     "ip_address_pool": [],
+     "name": "snet-private-endpoints",
+     "private_endpoint_network_policies": "Disabled",
+     "private_link_service_network_policies_enabled": true,
+     "resource_group_name": "rg-rcp-eu-prod",
+     "service_endpoint_policy_ids": null,
+     "service_endpoints": null,
+     "sharing_scope": null,
+     "timeouts": null,
+     "virtual_network_name": "vnet-rcp-eu-prod"
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_subnet_network_security_group_association.private_endpoints",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_subnet_network_security_group_association",
+   "name": "private_endpoints",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_user_assigned_identity.processor",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_user_assigned_identity",
+   "name": "processor",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "isolation_scope": null,
+     "location": "westeurope",
+     "name": "id-rcp-eu-prod-processor",
+     "resource_group_name": "rg-rcp-eu-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "eu",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_eu.azurerm_virtual_network.stamp",
+   "module_address": "module.stamp_eu",
+   "mode": "managed",
+   "type": "azurerm_virtual_network",
+   "name": "stamp",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "address_space": [
+      "10.10.0.0/16"
+     ],
+     "bgp_community": null,
+     "ddos_protection_plan": [],
+     "edge_zone": null,
+     "encryption": [],
+     "flow_timeout_in_minutes": null,
+     "ip_address_pool": [],
+     "location": "westeurope",
+     "name": "vnet-rcp-eu-prod",
+     "private_endpoint_vnet_policies": "Disabled",
+     "resource_group_name": "rg-rcp-eu-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "eu",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_eventgrid_system_topic.scans",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_eventgrid_system_topic",
+   "name": "scans",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "identity": [
+      {
+       "identity_ids": null,
+       "type": "SystemAssigned"
+      }
+     ],
+     "location": "eastus2",
+     "name": "egst-rcp-us-prod-scans",
+     "resource_group_name": "rg-rcp-us-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "us",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null,
+     "topic_type": "Microsoft.Storage.StorageAccounts"
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_eventgrid_system_topic_event_subscription.scan_uploaded",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_eventgrid_system_topic_event_subscription",
+   "name": "scan_uploaded",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "advanced_filter": [],
+     "advanced_filtering_on_arrays_enabled": false,
+     "azure_function_endpoint": [],
+     "dead_letter_identity": [],
+     "delivery_identity": [
+      {
+       "type": "SystemAssigned",
+       "user_assigned_identity": null
+      }
+     ],
+     "delivery_property": [],
+     "event_delivery_schema": "EventGridSchema",
+     "expiration_time_utc": null,
+     "included_event_types": [
+      "Microsoft.Storage.BlobCreated"
+     ],
+     "labels": null,
+     "name": "scan-uploaded",
+     "resource_group_name": "rg-rcp-us-prod",
+     "service_bus_topic_endpoint_id": null,
+     "storage_blob_dead_letter_destination": [],
+     "storage_queue_endpoint": [],
+     "subject_filter": [
+      {
+       "case_sensitive": null,
+       "subject_begins_with": "/blobServices/default/containers/raw-scans/",
+       "subject_ends_with": null
+      }
+     ],
+     "system_topic": "egst-rcp-us-prod-scans",
+     "timeouts": null,
+     "webhook_endpoint": []
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_log_analytics_workspace.stamp",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_log_analytics_workspace",
+   "name": "stamp",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "allow_resource_only_permissions": true,
+     "cmk_for_query_forced": null,
+     "daily_quota_gb": 5,
+     "data_collection_rule_id": null,
+     "identity": [],
+     "immediate_data_purge_on_30_days_enabled": null,
+     "internet_ingestion_enabled": true,
+     "internet_query_enabled": true,
+     "local_authentication_enabled": true,
+     "location": "eastus2",
+     "name": "log-rcp-us-prod",
+     "reservation_capacity_in_gb_per_day": null,
+     "resource_group_name": "rg-rcp-us-prod",
+     "retention_in_days": 30,
+     "sku": "PerGB2018",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "us",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_monitor_diagnostic_setting.scans_blob",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_monitor_diagnostic_setting",
+   "name": "scans_blob",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "enabled_log": [
+      {
+       "category": "StorageDelete",
+       "category_group": "",
+       "retention_policy": []
+      },
+      {
+       "category": "StorageRead",
+       "category_group": "",
+       "retention_policy": []
+      },
+      {
+       "category": "StorageWrite",
+       "category_group": "",
+       "retention_policy": []
+      }
+     ],
+     "eventhub_authorization_rule_id": null,
+     "eventhub_name": null,
+     "name": "blob-audit",
+     "partner_solution_id": null,
+     "storage_account_id": null,
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_network_security_group.private_endpoints",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_network_security_group",
+   "name": "private_endpoints",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "eastus2",
+     "name": "nsg-rcp-us-prod-private-endpoints",
+     "resource_group_name": "rg-rcp-us-prod",
+     "security_rule": [
+      {
+       "access": "Allow",
+       "description": "",
+       "destination_address_prefix": "VirtualNetwork",
+       "destination_address_prefixes": [],
+       "destination_application_security_group_ids": [],
+       "destination_port_range": "443",
+       "destination_port_ranges": [],
+       "direction": "Inbound",
+       "name": "allow-vnet-https",
+       "priority": 100,
+       "protocol": "Tcp",
+       "source_address_prefix": "VirtualNetwork",
+       "source_address_prefixes": [],
+       "source_application_security_group_ids": [],
+       "source_port_range": "*",
+       "source_port_ranges": []
+      },
+      {
+       "access": "Deny",
+       "description": "",
+       "destination_address_prefix": "*",
+       "destination_address_prefixes": [],
+       "destination_application_security_group_ids": [],
+       "destination_port_range": "*",
+       "destination_port_ranges": [],
+       "direction": "Inbound",
+       "name": "deny-all-inbound",
+       "priority": 4096,
+       "protocol": "*",
+       "source_address_prefix": "*",
+       "source_address_prefixes": [],
+       "source_application_security_group_ids": [],
+       "source_port_range": "*",
+       "source_port_ranges": []
+      }
+     ],
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "us",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_private_dns_zone.blob",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_private_dns_zone",
+   "name": "blob",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "name": "privatelink.blob.core.windows.net",
+     "resource_group_name": "rg-rcp-us-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "us",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_private_dns_zone_virtual_network_link.blob",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_private_dns_zone_virtual_network_link",
+   "name": "blob",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "name": "link-rcp-us-prod",
+     "private_dns_zone_name": "privatelink.blob.core.windows.net",
+     "registration_enabled": false,
+     "resource_group_name": "rg-rcp-us-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "us",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_private_endpoint.scans_blob",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_private_endpoint",
+   "name": "scans_blob",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "custom_network_interface_name": null,
+     "edge_zone": null,
+     "ip_configuration": [],
+     "location": "eastus2",
+     "name": "pe-rcp-us-prod-blob",
+     "private_dns_zone_group": [
+      {
+       "name": "blob"
+      }
+     ],
+     "private_service_connection": [
+      {
+       "is_manual_connection": false,
+       "name": "blob",
+       "private_connection_resource_alias": null,
+       "request_message": null,
+       "subresource_names": [
+        "blob"
+       ]
+      }
+     ],
+     "resource_group_name": "rg-rcp-us-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "us",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_resource_group.stamp",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_resource_group",
+   "name": "stamp",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "location": "eastus2",
+     "managed_by": null,
+     "name": "rg-rcp-us-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "us",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_role_assignment.eventgrid_to_queue",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_role_assignment",
+   "name": "eventgrid_to_queue",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "condition": null,
+     "delegated_managed_identity_resource_id": null,
+     "description": null,
+     "role_definition_name": "Azure Service Bus Data Sender",
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_role_assignment.processor_blob",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_role_assignment",
+   "name": "processor_blob",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "condition": null,
+     "delegated_managed_identity_resource_id": null,
+     "description": null,
+     "role_definition_name": "Storage Blob Data Contributor",
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_role_assignment.processor_queue",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_role_assignment",
+   "name": "processor_queue",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "condition": null,
+     "delegated_managed_identity_resource_id": null,
+     "description": null,
+     "role_definition_name": "Azure Service Bus Data Receiver",
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_servicebus_namespace.stamp",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_servicebus_namespace",
+   "name": "stamp",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "capacity": 0,
+     "customer_managed_key": [],
+     "identity": [
+      {
+       "identity_ids": null,
+       "type": "SystemAssigned"
+      }
+     ],
+     "local_auth_enabled": false,
+     "location": "eastus2",
+     "minimum_tls_version": "1.2",
+     "name": "sb-rcp-us-prod",
+     "premium_messaging_partitions": 0,
+     "public_network_access_enabled": true,
+     "resource_group_name": "rg-rcp-us-prod",
+     "sku": "Standard",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "us",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_servicebus_queue.scan_uploaded",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_servicebus_queue",
+   "name": "scan_uploaded",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "batched_operations_enabled": true,
+     "dead_lettering_on_message_expiration": true,
+     "duplicate_detection_history_time_window": "PT10M",
+     "express_enabled": false,
+     "forward_dead_lettered_messages_to": null,
+     "forward_to": null,
+     "lock_duration": "PT5M",
+     "max_delivery_count": 5,
+     "name": "scan-uploaded",
+     "partitioning_enabled": false,
+     "requires_duplicate_detection": false,
+     "requires_session": false,
+     "status": "Active",
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_storage_account.scans",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_storage_account",
+   "name": "scans",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "account_kind": "StorageV2",
+     "account_replication_type": "ZRS",
+     "account_tier": "Standard",
+     "allow_nested_items_to_be_public": false,
+     "allowed_copy_scope": null,
+     "azure_files_authentication": [],
+     "blob_properties": [
+      {
+       "change_feed_enabled": false,
+       "change_feed_retention_in_days": null,
+       "container_delete_retention_policy": [
+        {
+         "days": 30
+        }
+       ],
+       "cors_rule": [],
+       "delete_retention_policy": [
+        {
+         "days": 30,
+         "permanent_delete_enabled": false
+        }
+       ],
+       "last_access_time_enabled": false,
+       "restore_policy": [],
+       "versioning_enabled": true
+      }
+     ],
+     "cross_tenant_replication_enabled": false,
+     "custom_domain": [],
+     "customer_managed_key": [],
+     "default_to_oauth_authentication": true,
+     "dns_endpoint_type": "Standard",
+     "edge_zone": null,
+     "https_traffic_only_enabled": true,
+     "identity": [],
+     "immutability_policy": [],
+     "infrastructure_encryption_enabled": false,
+     "is_hns_enabled": false,
+     "local_user_enabled": true,
+     "location": "eastus2",
+     "min_tls_version": "TLS1_2",
+     "name": "strcpusprodscans",
+     "nfsv3_enabled": false,
+     "provisioned_billing_model_version": null,
+     "public_network_access_enabled": false,
+     "queue_encryption_key_type": "Service",
+     "resource_group_name": "rg-rcp-us-prod",
+     "sas_policy": [],
+     "sftp_enabled": false,
+     "shared_access_key_enabled": false,
+     "table_encryption_key_type": "Service",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "us",
+      "environment": "prod",
+      "owner": "platform-team",
+      "workload": "scan-data"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_storage_container.processed",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_storage_container",
+   "name": "processed",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "container_access_type": "private",
+     "encryption_scope_override_enabled": true,
+     "name": "processed",
+     "storage_account_name": null,
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_storage_container.raw",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_storage_container",
+   "name": "raw",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "container_access_type": "private",
+     "encryption_scope_override_enabled": true,
+     "name": "raw-scans",
+     "storage_account_name": null,
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_storage_management_policy.scans",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_storage_management_policy",
+   "name": "scans",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "rule": [
+      {
+       "actions": [
+        {
+         "base_blob": [
+          {
+           "auto_tier_to_hot_from_cool_enabled": null,
+           "delete_after_days_since_creation_greater_than": -1,
+           "delete_after_days_since_last_access_time_greater_than": -1,
+           "delete_after_days_since_modification_greater_than": -1,
+           "tier_to_archive_after_days_since_creation_greater_than": -1,
+           "tier_to_archive_after_days_since_last_access_time_greater_than": 365,
+           "tier_to_archive_after_days_since_last_tier_change_greater_than": -1,
+           "tier_to_archive_after_days_since_modification_greater_than": -1,
+           "tier_to_cold_after_days_since_creation_greater_than": -1,
+           "tier_to_cold_after_days_since_last_access_time_greater_than": 90,
+           "tier_to_cold_after_days_since_modification_greater_than": -1,
+           "tier_to_cool_after_days_since_creation_greater_than": -1,
+           "tier_to_cool_after_days_since_last_access_time_greater_than": 30,
+           "tier_to_cool_after_days_since_modification_greater_than": -1
+          }
+         ],
+         "snapshot": [],
+         "version": [
+          {
+           "change_tier_to_archive_after_days_since_creation": -1,
+           "change_tier_to_cool_after_days_since_creation": -1,
+           "delete_after_days_since_creation": 90,
+           "tier_to_archive_after_days_since_last_tier_change_greater_than": -1,
+           "tier_to_cold_after_days_since_creation_greater_than": -1
+          }
+         ]
+        }
+       ],
+       "enabled": true,
+       "filters": [
+        {
+         "blob_types": [
+          "blockBlob"
+         ],
+         "match_blob_index_tag": [],
+         "prefix_match": [
+          "processed/",
+          "raw-scans/"
+         ]
+        }
+       ],
+       "name": "tier-down-scans"
+      }
+     ],
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_subnet.private_endpoints",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_subnet",
+   "name": "private_endpoints",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "address_prefixes": [
+      "10.20.0.0/20"
+     ],
+     "default_outbound_access_enabled": true,
+     "delegation": [],
+     "ip_address_pool": [],
+     "name": "snet-private-endpoints",
+     "private_endpoint_network_policies": "Disabled",
+     "private_link_service_network_policies_enabled": true,
+     "resource_group_name": "rg-rcp-us-prod",
+     "service_endpoint_policy_ids": null,
+     "service_endpoints": null,
+     "sharing_scope": null,
+     "timeouts": null,
+     "virtual_network_name": "vnet-rcp-us-prod"
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_subnet_network_security_group_association.private_endpoints",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_subnet_network_security_group_association",
+   "name": "private_endpoints",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_user_assigned_identity.processor",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_user_assigned_identity",
+   "name": "processor",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "isolation_scope": null,
+     "location": "eastus2",
+     "name": "id-rcp-us-prod-processor",
+     "resource_group_name": "rg-rcp-us-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "us",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  },
+  {
+   "address": "module.stamp_us.azurerm_virtual_network.stamp",
+   "module_address": "module.stamp_us",
+   "mode": "managed",
+   "type": "azurerm_virtual_network",
+   "name": "stamp",
+   "change": {
+    "actions": [
+     "create"
+    ],
+    "after": {
+     "address_space": [
+      "10.20.0.0/16"
+     ],
+     "bgp_community": null,
+     "ddos_protection_plan": [],
+     "edge_zone": null,
+     "encryption": [],
+     "flow_timeout_in_minutes": null,
+     "ip_address_pool": [],
+     "location": "eastus2",
+     "name": "vnet-rcp-us-prod",
+     "private_endpoint_vnet_policies": "Disabled",
+     "resource_group_name": "rg-rcp-us-prod",
+     "tags": {
+      "cost-center": "cc-4711",
+      "data-region": "us",
+      "environment": "prod",
+      "owner": "platform-team"
+     },
+     "timeouts": null
+    }
+   }
+  }
+ ]
+}

@@ -18,7 +18,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "agents" {
   max_count            = var.max_nodes
 
   # Only agent pods land here, and agent pods land nowhere else.
-  node_labels = { "workload" = "build-agents" }
+  # AKS adds the Spot label and taint itself; declaring them avoids a diff on every plan.
+  node_labels = {
+    "workload"                              = "build-agents"
+    "kubernetes.azure.com/scalesetpriority" = "spot"
+  }
   node_taints = [
     "workload=build-agents:NoSchedule",
     "kubernetes.azure.com/scalesetpriority=spot:NoSchedule",
@@ -26,6 +30,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "agents" {
 
   os_disk_type    = "Ephemeral"
   os_disk_size_gb = var.os_disk_size_gb
+
+  # Temp disks and caches are encrypted on the host too. Needs the
+  # EncryptionAtHost feature registered on the subscription.
+  host_encryption_enabled = true
+  max_pods                = 50
 
   tags = merge(var.tags, { workload = "build-agents" })
 }
